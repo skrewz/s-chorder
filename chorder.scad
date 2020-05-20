@@ -50,8 +50,150 @@ index_joint0_rotation  = -10;
 thumb_joint0_rotation  = -90;
 
 
+// Derive coordinates and rotation vectors:
+
+// Helper functions {{{
+
+// These helper functions calculate the coordinate following a segment, as if
+// *_joint0_rotation didn't exist (it can be compensated for, later on).
+function x_coord_for(startvec,angle,segment,radius) =
+  startvec[0] ; // always same, given no _joint0 rotation.
+function y_coord_for(startvec,angle,segment,radius) =
+  startvec[1] + cos(angle)*(segment-2*radius);
+function z_coord_for(startvec,angle,segment,radius) =
+  startvec[2] + sin(-angle)*(segment-2*radius);
+
+function sum(list,i=0) = i<len(list)-1 ? list[i] + sum(list,i+1) : list[i];
+assert(sum([ 4, 5, 3]) == 12);
+assert(sum([ 4, 1, -1]) == 4);
+
+function rotate_coord(coord,joint0_rotation,relative_to_joint0_offset) =
+  [
+    // have hypotenuse and angle, want opposite:
+    relative_to_joint0_offset[0]-sin(joint0_rotation)*(relative_to_joint0_offset[2]-coord[2]),
+    coord[1], // remains the same when rotating around y axis
+    // have hypotenuse and angle, want adjacent:
+    relative_to_joint0_offset[2]-cos(joint0_rotation)*(relative_to_joint0_offset[2]-coord[2])
+  ];
+
+function coord_for(startvec,angle,segment,radius) =
+  [x_coord_for(startvec,angle,segment,radius),y_coord_for(startvec,angle,segment,radius),z_coord_for(startvec,angle,segment,radius)];
+
+// }}}
+
+// Assign {pinky,ring,middle,index,thumb}_{coords,rotation} {{{
+
+// For pinky {{{
+_pinky_coord_1 = coord_for(pinky_joint0_offset,sum([for (i=[0:0]) pinky_angles[i]]),pinky_segment_lengths[0],pinky_radius);
+_pinky_coord_2 = coord_for(_pinky_coord_1,     sum([for (i=[0:1]) pinky_angles[i]]),pinky_segment_lengths[1],pinky_radius);
+_pinky_coord_3 = coord_for(_pinky_coord_2,     sum([for (i=[0:2]) pinky_angles[i]]),pinky_segment_lengths[2],pinky_radius);
+
+pinky_coords = [
+  rotate_coord(pinky_joint0_offset,pinky_joint0_rotation,pinky_joint0_offset),
+  rotate_coord(_pinky_coord_1,     pinky_joint0_rotation,pinky_joint0_offset),
+  rotate_coord(_pinky_coord_2,     pinky_joint0_rotation,pinky_joint0_offset),
+  rotate_coord(_pinky_coord_3,     pinky_joint0_rotation,pinky_joint0_offset)
+];
+pinky_rotation = [ for (i=[0:3])
+  [
+    sum([for (j=[0:i]) pinky_angles[j] ? -pinky_angles[j] : 0]),
+    pinky_joint0_rotation,
+    0, // always 0 when rotating in y and x axes
+  ],
+];
+
+// }}}
+
+// For ring {{{
+_ring_coord_1 = coord_for(ring_joint0_offset,sum([for (i=[0:0]) ring_angles[i]]),ring_segment_lengths[0],ring_radius);
+_ring_coord_2 = coord_for(_ring_coord_1,     sum([for (i=[0:1]) ring_angles[i]]),ring_segment_lengths[1],ring_radius);
+_ring_coord_3 = coord_for(_ring_coord_2,     sum([for (i=[0:2]) ring_angles[i]]),ring_segment_lengths[2],ring_radius);
+
+ring_coords = [
+  rotate_coord(ring_joint0_offset,ring_joint0_rotation,ring_joint0_offset),
+  rotate_coord(_ring_coord_1,     ring_joint0_rotation,ring_joint0_offset),
+  rotate_coord(_ring_coord_2,     ring_joint0_rotation,ring_joint0_offset),
+  rotate_coord(_ring_coord_3,     ring_joint0_rotation,ring_joint0_offset)
+];
+ring_rotation = [ for (i=[0:3])
+  [
+    sum([for (j=[0:i]) ring_angles[j] ? -ring_angles[j] : 0]),
+    ring_joint0_rotation,
+    0, // always 0 when rotating in y and x axes
+  ],
+];
+
+// }}}
+
+// For middle {{{
+_middle_coord_1 = coord_for(middle_joint0_offset,sum([for (i=[0:0]) middle_angles[i]]),middle_segment_lengths[0],middle_radius);
+_middle_coord_2 = coord_for(_middle_coord_1,     sum([for (i=[0:1]) middle_angles[i]]),middle_segment_lengths[1],middle_radius);
+_middle_coord_3 = coord_for(_middle_coord_2,     sum([for (i=[0:2]) middle_angles[i]]),middle_segment_lengths[2],middle_radius);
+
+middle_coords = [
+  rotate_coord(middle_joint0_offset,middle_joint0_rotation,middle_joint0_offset),
+  rotate_coord(_middle_coord_1,     middle_joint0_rotation,middle_joint0_offset),
+  rotate_coord(_middle_coord_2,     middle_joint0_rotation,middle_joint0_offset),
+  rotate_coord(_middle_coord_3,     middle_joint0_rotation,middle_joint0_offset)
+];
+middle_rotation = [ for (i=[0:3])
+  [
+    sum([for (j=[0:i]) middle_angles[j] ? -middle_angles[j] : 0]),
+    middle_joint0_rotation,
+    0, // always 0 when rotating in y and x axes
+  ],
+];
+
+// }}}
+
+// For index {{{
+_index_coord_1 = coord_for(index_joint0_offset,sum([for (i=[0:0]) index_angles[i]]),index_segment_lengths[0],index_radius);
+_index_coord_2 = coord_for(_index_coord_1,     sum([for (i=[0:1]) index_angles[i]]),index_segment_lengths[1],index_radius);
+_index_coord_3 = coord_for(_index_coord_2,     sum([for (i=[0:2]) index_angles[i]]),index_segment_lengths[2],index_radius);
+
+index_coords = [
+  rotate_coord(index_joint0_offset,index_joint0_rotation,index_joint0_offset),
+  rotate_coord(_index_coord_1,     index_joint0_rotation,index_joint0_offset),
+  rotate_coord(_index_coord_2,     index_joint0_rotation,index_joint0_offset),
+  rotate_coord(_index_coord_3,     index_joint0_rotation,index_joint0_offset)
+];
+index_rotation = [ for (i=[0:3])
+  [
+    sum([for (j=[0:i]) index_angles[j] ? -index_angles[j] : 0]),
+    index_joint0_rotation,
+    0, // always 0 when rotating in y and x axes
+  ],
+];
+
+// }}}
+
+// For thumb {{{
+_thumb_coord_1 = coord_for(thumb_joint0_offset,sum([for (i=[0:0]) thumb_angles[i]]),thumb_segment_lengths[0],thumb_radius);
+_thumb_coord_2 = coord_for(_thumb_coord_1,     sum([for (i=[0:1]) thumb_angles[i]]),thumb_segment_lengths[1],thumb_radius);
+
+thumb_coords = [
+  rotate_coord(thumb_joint0_offset,thumb_joint0_rotation,thumb_joint0_offset),
+  rotate_coord(_thumb_coord_1,     thumb_joint0_rotation,thumb_joint0_offset),
+  rotate_coord(_thumb_coord_2,     thumb_joint0_rotation,thumb_joint0_offset),
+];
+thumb_rotation = [ for (i=[0:2])
+  [
+    // Ternary expression necessary to handle that there is no angle available
+    // at joint2 for a thumb:
+    sum([for (j=[0:i]) thumb_angles[j] ? -thumb_angles[j] : 0]),
+    thumb_joint0_rotation,
+    0, // always 0 when rotating in y and x axes
+  ],
+];
+
+// }}}
+
+// }}}
+
+// Helper modules:
+
 module cylinder_from_to (origin,dest,radius1,radius2)
-{
+{ // {{{
   length = sqrt(
     pow(origin[0]-dest[0],2)+
     pow(origin[1]-dest[1],2)+
@@ -68,16 +210,16 @@ module cylinder_from_to (origin,dest,radius1,radius2)
     rotate([0,-rotation_upwards,0])
     rotate([0,90,0])
       cylinder(r1=radius1,r2=radius2,h=length);
-}
+} // }}}
 
 module segment (length,radius)
-{
+{ // {{{
   sphere(radius);
   cylinder(r=radius,h=length);
-}
+} // }}}
 
 module final_segment (length,radius)
-{
+{ // {{{
   sphere(radius);
   intersection()
   {
@@ -86,10 +228,12 @@ module final_segment (length,radius)
     cylinder(r=radius,h=length);
   }
 
-}
+} // }}}
+
+// A model of the hand, as parameterised:
 
 module hand_model ()
-{
+{ // {{{
   measurements = [
     [
       index_angles,
@@ -118,8 +262,6 @@ module hand_model ()
     ],
   ];
 
-  // TODO: these should compensate for the size of the ball of each joint,
-  // given this is how the segment_lengths are measured.
   for (finger_i = [0:3])
   {
     angles =          measurements[finger_i][0];
@@ -181,6 +323,42 @@ module hand_model ()
   translate(wristaxis_pinkyside_offset)
     sphere(r=wristaxis_radius,$fn=40);
 
-}
+} // }}}
 
-hand_model();
+module chorder()
+{ // {{{
+
+
+  // TODO:
+  // Given the coordinates (and rotation) at the fingertip, simply "extend"
+  // something from the knuckles.
+
+
+
+  all_coords = [pinky_coords,ring_coords,middle_coords,index_coords,thumb_coords];
+  all_rotation = [pinky_rotation,ring_rotation,middle_rotation,index_rotation,thumb_rotation];
+  for (k = [0:4])
+  {
+    // illustrate that we have coordinates/rotation in mid-joint, for all joints:
+    for (i = [0:(k==4 ? 2 : 3)])
+    {
+      translate(all_coords[k][i])
+        rotate(all_rotation[k][i])
+        cylinder(r=1,h=5,$fn=10);
+
+      // example placement of a touch button:
+      translate(all_coords[k][k==4?2:3])
+        rotate(all_rotation[k][k==4?2:3])
+        {
+          translate([0,0,-20]) // should probably depend on finger radius
+          #
+          cylinder(r=2,h=10,$fn=20);
+        }
+      }
+  }
+} // }}}
+
+
+chorder();
+
+% hand_model();
