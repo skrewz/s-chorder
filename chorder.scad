@@ -21,10 +21,10 @@
 // (It gets more finger-yoga-like to do this with other joints. You'll probably
 // have to use another hand to hold the joint in a slightly overstretched
 // position. Or take a guess.)
-pinky_segment_lengths  = [ 53,  32, 28 ];
-ring_segment_lengths   = [ 65,  40, 33 ];
-middle_segment_lengths = [ 69,  44, 31 ];
-index_segment_lengths  = [ 65,  39, 31 ];
+pinky_segment_lengths  = [ 53,  32, 38 ];
+ring_segment_lengths   = [ 65,  40, 41 ];
+middle_segment_lengths = [ 69,  44, 41 ];
+index_segment_lengths  = [ 65,  39, 41 ];
 thumb_segment_lengths  = [ 54,  40 ];
 
 // Radii of each finger:
@@ -35,26 +35,26 @@ index_radius  = 10.0;
 thumb_radius  = 13.0;
 
 // Angles at joint 0, joint 1 and joint 2, for a "comfortably glove-shaped" hand:
-pinky_angles  = [20,40,20];
+pinky_angles  = [20,37,33];
 ring_angles   = [20,60,15];
 middle_angles = [15,60,10];
 index_angles  = [20,30,10];
-thumb_angles  = [0,30];
+thumb_angles  = [0,00];
 
 // Almost-guesstimate: for a fingers-stretched hand, where are the joint 0's?
 //
-pinky_joint0_offset  = [ 128, -25,-20];
-ring_joint0_offset   = [  96, -10,-10];
+pinky_joint0_offset  = [ 110, -25,-15];
+ring_joint0_offset   = [  89, -10,-10];
 middle_joint0_offset = [  64,   0,  0];
 index_joint0_offset  = [  32,  -2,  0];
-thumb_joint0_offset  = [   0, -40,-50];
+thumb_joint0_offset  = [   5, -50,-40];
 
-wristaxis_thumbside_offset  = [  32, -120,-25];
-wristaxis_pinkyside_offset  = [ 112, -120,-25];
+wristaxis_thumbside_upper_offset  = [  32, -120,-25];
+wristaxis_pinkyside_upper_offset  = [ 112, -120,-25];
 wristaxis_radius = 20;
 
-pinky_joint0_rotation  =  12;
-ring_joint0_rotation   =   0;
+pinky_joint0_rotation  =  17;
+ring_joint0_rotation   =   9;
 middle_joint0_rotation =  -3;
 index_joint0_rotation  = -10;
 thumb_joint0_rotation  = -90;
@@ -68,6 +68,14 @@ thumb_joint0_rotation  = -90;
 mcu_clearance_wdh = [25,45,30];
 mcu_wall_w = 1.5;
 
+// Elastiic band width:
+
+elastic_band_w = 20;
+// measured as compressed, if relevant:
+elastic_band_thickness = 1;
+elastic_band_clearing_w = 22;
+elastic_band_wall_w = 3;
+
 /*****************************************************************************/
 /* Less-likely calibration properties                                        */
 /*****************************************************************************/
@@ -76,16 +84,20 @@ mcu_wall_w = 1.5;
 
 // real m3 radius:
 m3_radius = 1.5;
+// so that an m3 bolt can be passed through without too much effort:
+m3_clear_radius = 1.7;
+
 m3_head_radius = 3; // from memory
 m3_head_clear_radius = 3.2; // from memory
+m3_nut_clear_radius = 3.4; // When creating $fn=6 cutouts for these
 m3_head_height = 2; // from memory
-// so that an m3 bolt can be passed through without too much effort:
-m3_clear_radius = 1.8;
 
 // 0.3mm wire diameter 10 mm high 6mm outer diameter springs:
 // https://www.aliexpress.com/item/33050149067.html
 spring_radius = 3;
 spring_height = 10;
+
+connector_depth = 2;
 
 // how much depression of spring before electrical contact is made:
 contact_clearance = 1;
@@ -253,7 +265,7 @@ thumb_coords[1]+
   -thumb_connection_point_translation_distance*rotation_for_euler_rotations(thumb_rotation[1])*[0,0,1];
 // }}}
 
-// Calculating where the finger-end attaches to the body {{{
+// Calculating where the parts attaches to each other {{{
 // Warning: inexact science at play. Technically, these points could be derived
 // from observed angles between e.g. index and middle joint0's.
 
@@ -265,14 +277,31 @@ finger_end_connection_point_thumb =
 finger_end_connection_point_index = 
   0.6*index_joint0_offset + 
   0.4*middle_joint0_offset+
-  [0,-8,-10-frame_radius];
+  [0,-3*connector_depth,-10-frame_radius];
 
 finger_end_connection_point_pinky = 
   0.3*ring_joint0_offset + 
   0.7*pinky_joint0_offset+
-  [0,-8,-8-frame_radius];
+  [0,-4*connector_depth,-8-frame_radius];
 
 finger_end_connection_point_radius = frame_radius;
+
+wrist_handle_connection_frame_height = 30;
+
+body_wristaxis_thumbside_upper_offset = wristaxis_thumbside_upper_offset+[0,0,-wristaxis_radius-frame_radius];
+body_wristaxis_pinkyside_upper_offset = wristaxis_pinkyside_upper_offset+[0,0,-wristaxis_radius-frame_radius];
+body_wristaxis_thumbside_lower_offset = wristaxis_thumbside_upper_offset+[0,0,-wristaxis_radius-frame_radius-wrist_handle_connection_frame_height];
+body_wristaxis_pinkyside_lower_offset = wristaxis_pinkyside_upper_offset+[0,0,-wristaxis_radius-frame_radius-wrist_handle_connection_frame_height];
+
+wrist_handle_connection_point_thumb_upper = 
+  body_wristaxis_thumbside_upper_offset+[0,-frame_radius,0];
+wrist_handle_connection_point_thumb_lower = 
+  body_wristaxis_thumbside_lower_offset+[0,-frame_radius,0];
+wrist_handle_connection_point_pinky_upper = 
+  body_wristaxis_pinkyside_upper_offset+[0,-frame_radius,0];
+wrist_handle_connection_point_pinky_lower = 
+  body_wristaxis_pinkyside_lower_offset+[0,-frame_radius,0];
+
 
 // }}}
 
@@ -290,35 +319,122 @@ module cylinder_from_to (origin,dest,radius1,radius2)
 
   tangent = (dest[1]-origin[1])/(dest[0]-origin[0]);
   rotation_in_plane = atan(tangent) + (0 > (dest[0]-origin[0]) ? 180 : 0);
-  //echo("rot_plane=",rotation_in_plane,"rot_upwards=",rotation_upwards,"len=",length,"tan=",tangent);
   translate(origin)
-    rotate([0,0,rotation_in_plane])
+    rotate([0,0,is_num(rotation_in_plane) ? rotation_in_plane : 90])
     rotate([0,-rotation_upwards,0])
     rotate([0,90,0])
       cylinder(r1=radius1,r2=radius2,h=length);
+} // }}}
+
+module elastic_clasp_positive()
+{ // {{{
+  rounding_r = 2;
+  clasp_length = elastic_band_clearing_w+2*elastic_band_wall_w+2*m3_head_clear_radius+2*m3_clear_radius-2*rounding_r;
+
+  minkowski()
+  {
+    cylinder(r=rounding_r,h=0.01,$fn=20);
+    translate([rounding_r,rounding_r,0])
+      cube([2*frame_radius-2*rounding_r,
+        clasp_length-2*rounding_r,
+        frame_radius]);
+  }
+
+  translate([0,0,-elastic_band_wall_w-elastic_band_thickness])
+  intersection()
+  {
+    cube([2*frame_radius,
+      clasp_length,
+      elastic_band_wall_w]);
+    minkowski()
+    {
+      sphere(rounding_r,$fn=20);
+      translate([rounding_r,rounding_r,rounding_r])
+        cube([2*frame_radius-2*rounding_r,
+          clasp_length-2*rounding_r,
+          elastic_band_wall_w-rounding_r]);
+    }
+  }
+} // }}}
+
+module elastic_clasp_negative()
+{ // {{{
+  for (offs = [0,elastic_band_clearing_w+2*m3_clear_radius])
+  {
+    translate([
+      frame_radius,
+      elastic_band_wall_w+1*m3_clear_radius+offs,
+      -elastic_band_wall_w-elastic_band_thickness-0.01])
+      {
+        cylinder(r=m3_clear_radius,h=3*frame_radius,$fn=20);
+      }
+
+    translate([
+      frame_radius,
+      elastic_band_wall_w+1*m3_clear_radius+offs,
+      2*frame_radius-1.3*m3_head_height])
+      {
+        cylinder(r=m3_head_clear_radius,h=3*frame_radius,$fn=20);
+      }
+  }
 } // }}}
 
 module connector_positive()
 { // {{{
   rotate([-90,0,0])
   {
-    translate([0,0,0])
-      cylinder(r=finger_end_connection_point_radius,h=frame_radius,$fn=20);
+    cylinder(r=finger_end_connection_point_radius,h=connector_depth+frame_radius,$fn=20);
   }
 
 } // }}}
 
-module connector_negative(extra_cutout=false)
+module connector_negative(extra_cutout=false,clear_for_insertion=true,hex=false)
 { // {{{
+  rotate([90,0,0])
+  {
+    translate([0,0,0])
+      cylinder(r=finger_end_connection_point_radius,h=connector_depth+frame_radius,$fn=20);
+  }
   rotate([-90,0,0])
   {
     translate([0,0,-10])
       cylinder(r=m3_clear_radius,h=20,$fn=20);
-    translate([0,0,2*frame_radius-m3_head_height])
-      cylinder(r=m3_head_clear_radius,h=m3_head_height+30,$fn=20);
+    if (hex)
+    {
+      translate([0,0,m3_head_height])
+        rotate([0,0,0.5*360/6])
+          cylinder(r=m3_nut_clear_radius,h=m3_head_height+(extra_cutout?20:5),$fn=6);
+    }
+    else
+    {
+      translate([0,0,2*frame_radius-m3_head_height])
+        cylinder(r=m3_head_clear_radius,h=m3_head_height+5,$fn=30);
+    }
+    if(clear_for_insertion)
+      translate([0,0,2*frame_radius+5-0.01])
+        cylinder(r=m3_head_clear_radius,h=m3_head_height+20,$fn=20);
     if(extra_cutout)
-      translate([0,0,5])
+      translate([0,0,2*frame_radius+5-0.01])
         cylinder(r=m3_head_clear_radius,h=10,$fn=20);
+  }
+} // }}}
+
+module connector_access_negative(hex=false)
+{ // {{{
+  rotate([-90,0,0])
+  {
+    hull ()
+    {
+      for (t=[0,frame_radius])
+      {
+        translate([0,t,m3_head_height])
+          if (hex)
+            rotate([0,0,0.5*360/6])
+              cylinder(r=m3_nut_clear_radius,h=15,$fn=6);
+          else
+            cylinder(r=m3_head_clear_radius,h=15,$fn=20);
+      }
+    }
   }
 } // }}}
 
@@ -377,6 +493,23 @@ module contact_negative ()
 { // {{{
   translate([0,0,-8])
   {
+    cylinder(r=m3_nut_clear_radius,h=15,$fn=6);
+  }
+  translate([0,0,-11])
+  {
+    cylinder(r=m3_clear_radius,h=15,$fn=20);
+  }
+
+  translate([0,0,-20])
+  {
+    cylinder(r=m3_head_radius,h=10,$fn=20);
+  }
+} // }}}
+
+module contact_negative_springvers ()
+{ // {{{
+  translate([0,0,-8])
+  {
     cylinder(r=spring_radius+0.4,h=15,$fn=20);
   }
   translate([0,0,-11])
@@ -391,6 +524,22 @@ module contact_negative ()
 } // }}}
 
 module contact_positive ()
+{ // {{{
+  %
+  translate([0,0,-8])
+  {
+    translate([0,0,-6])
+    {
+      color("#222222")
+      cylinder(r=m3_radius,h=15,$fn=30);
+
+      color("#222222")
+      cylinder(r=m3_head_radius,h=m3_head_radius,$fn=30);
+    }
+  }
+} // }}}
+
+module contact_positive_springvers ()
 { // {{{
   %
   translate([0,0,-8])
@@ -515,80 +664,22 @@ module hand_model ()
   cylinder_from_to(middle_joint0_offset,ring_joint0_offset,middle_radius,ring_radius,$fn=40);
   cylinder_from_to(ring_joint0_offset,pinky_joint0_offset,ring_radius,pinky_radius,$fn=40);
 
-  cylinder_from_to(thumb_joint0_offset,wristaxis_thumbside_offset,thumb_radius,wristaxis_radius,$fn=40);
-  cylinder_from_to(pinky_joint0_offset,wristaxis_pinkyside_offset,pinky_radius,wristaxis_radius,$fn=40);
-  cylinder_from_to(ring_joint0_offset,wristaxis_pinkyside_offset,ring_radius,wristaxis_radius,$fn=40);
-  cylinder_from_to(index_joint0_offset,wristaxis_thumbside_offset,index_radius,wristaxis_radius,$fn=40);
+  cylinder_from_to(thumb_joint0_offset,wristaxis_thumbside_upper_offset,thumb_radius,wristaxis_radius,$fn=40);
+  cylinder_from_to(pinky_joint0_offset,wristaxis_pinkyside_upper_offset,pinky_radius,wristaxis_radius,$fn=40);
+  cylinder_from_to(ring_joint0_offset,wristaxis_pinkyside_upper_offset,ring_radius,wristaxis_radius,$fn=40);
+  cylinder_from_to(index_joint0_offset,wristaxis_thumbside_upper_offset,index_radius,wristaxis_radius,$fn=40);
 
-  cylinder_from_to(wristaxis_thumbside_offset,wristaxis_pinkyside_offset,wristaxis_radius,wristaxis_radius,$fn=40);
+  cylinder_from_to(wristaxis_thumbside_upper_offset,wristaxis_pinkyside_upper_offset,wristaxis_radius,wristaxis_radius,$fn=40);
 
-  translate(wristaxis_thumbside_offset)
+  translate(wristaxis_thumbside_upper_offset)
     sphere(r=wristaxis_radius,$fn=40);
-  translate(wristaxis_pinkyside_offset)
+  translate(wristaxis_pinkyside_upper_offset)
     sphere(r=wristaxis_radius,$fn=40);
 
 } // }}}
 
 module finger_end()
 { // {{{
-
-  for (connectionpoint=[
-    thumb_connection_point,
-    index_joint0_offset+[0,0,-index_radius-frame_radius],
-    middle_joint0_offset+[0,0,-middle_radius-frame_radius],
-    ring_joint0_offset+[0,0,-ring_radius-frame_radius],
-    pinky_joint0_offset+[0,0,-pinky_radius-frame_radius]])
-    {
-      translate(connectionpoint)
-      {
-        sphere(r=frame_radius,$fn=30);
-      }
-    }
-
-
-  difference()
-  {
-    union ()
-    {
-      // From index to thumb:
-      cylinder_from_to(
-        thumb_connection_point,
-        index_joint0_offset+[0,0,-index_radius-frame_radius],
-        frame_radius,frame_radius,
-        $fn=30);
-      // Front under-knuckles attachments:
-      cylinder_from_to(
-        index_joint0_offset+[0,0,-index_radius-frame_radius],
-        middle_joint0_offset+[0,0,-middle_radius-frame_radius],
-        frame_radius,frame_radius,
-        $fn=30);
-      cylinder_from_to(
-        middle_joint0_offset+[0,0,-middle_radius-frame_radius],
-        ring_joint0_offset+[0,0,-ring_radius-frame_radius],
-        frame_radius, frame_radius,$fn=30);
-      cylinder_from_to(
-        ring_joint0_offset+[0,0,-ring_radius-frame_radius],
-        pinky_joint0_offset+[0,0,-pinky_radius-frame_radius],
-        frame_radius,frame_radius,$fn=30);
-
-      translate(finger_end_connection_point_thumb)
-        connector_positive();
-      translate(finger_end_connection_point_index)
-        connector_positive();
-      translate(finger_end_connection_point_pinky)
-        connector_positive();
-    }
-    union()
-    {
-      translate(finger_end_connection_point_thumb)
-        connector_negative();
-      translate(finger_end_connection_point_index)
-        connector_negative();
-      translate(finger_end_connection_point_pinky)
-        connector_negative();
-    }
-  }
-
 
 
   module contact_outrigger (joint0_offset,radius,coords,rotations)
@@ -600,21 +691,23 @@ module finger_end()
         cylinder_from_to(
           joint0_offset+[0,0,-radius-frame_radius],
           coords[3]+[0,-10,0],
-          frame_radius,radius,$fn=40);
+          frame_radius,frame_radius,$fn=40);
 
           translate(coords[3])
             rotate(rotations[3])
             rotate([90,0,0])
-            translate([0,-radius,-10])
+            translate([0,-radius,0*radius])
             {
-              cylinder(r=radius,h=2*radius);
-              sphere(r=radius);
+              cylinder(r=radius,h=1*radius,$fn=40);
+          //    sphere(r=radius);
             }
 
         translate(coords[3])
           rotate(rotations[3])
           translate([0,0,-10])
           {
+            translate([0,0,-10])
+              cylinder(r=5,h=10,$fn=30);
             contact_positive();
           }
 
@@ -639,11 +732,70 @@ module finger_end()
           cylinder(r=radius,h=60);
     }
   } // }}}
+
+  difference()
+  {
+    union ()
+    {
+      for (connectionpoint=[
+        thumb_connection_point,
+        index_joint0_offset+[0,0,-index_radius-frame_radius],
+        middle_joint0_offset+[0,0,-middle_radius-frame_radius],
+        ring_joint0_offset+[0,0,-ring_radius-frame_radius],
+        pinky_joint0_offset+[0,0,-pinky_radius-frame_radius]])
+        {
+          translate(connectionpoint)
+          {
+            sphere(r=frame_radius,$fn=30);
+          }
+        }
+
+      // From index to thumb:
+      cylinder_from_to(
+        thumb_connection_point,
+        index_joint0_offset+[0,0,-index_radius-frame_radius],
+        frame_radius,frame_radius,
+        $fn=30);
+      // Front under-knuckles attachments:
+      cylinder_from_to(
+        index_joint0_offset+[0,0,-index_radius-frame_radius],
+        middle_joint0_offset+[0,0,-middle_radius-frame_radius],
+        frame_radius,frame_radius,
+        $fn=30);
+      cylinder_from_to(
+        middle_joint0_offset+[0,0,-middle_radius-frame_radius],
+        ring_joint0_offset+[0,0,-ring_radius-frame_radius],
+        frame_radius, frame_radius,$fn=30);
+      cylinder_from_to(
+        ring_joint0_offset+[0,0,-ring_radius-frame_radius],
+        pinky_joint0_offset+[0,0,-pinky_radius-frame_radius],
+        frame_radius,frame_radius,$fn=30);
  
-  contact_outrigger(pinky_joint0_offset,pinky_radius,pinky_coords,pinky_rotation);
-  contact_outrigger(ring_joint0_offset,ring_radius,ring_coords,ring_rotation);
-  contact_outrigger(middle_joint0_offset,middle_radius,middle_coords,middle_rotation);
-  contact_outrigger(index_joint0_offset,index_radius,index_coords,index_rotation);
+      contact_outrigger(pinky_joint0_offset,pinky_radius,pinky_coords,pinky_rotation);
+      contact_outrigger(ring_joint0_offset,ring_radius,ring_coords,ring_rotation);
+      contact_outrigger(middle_joint0_offset,middle_radius,middle_coords,middle_rotation);
+      contact_outrigger(index_joint0_offset,index_radius,index_coords,index_rotation);
+
+      translate(finger_end_connection_point_thumb)
+        connector_positive();
+      translate(finger_end_connection_point_index)
+        connector_positive();
+      translate(finger_end_connection_point_pinky)
+        connector_positive();
+    }
+    union()
+    {
+      translate(finger_end_connection_point_thumb)
+        connector_negative(clear_for_insertion=false);
+      translate(finger_end_connection_point_index)
+        connector_negative();
+      translate(finger_end_connection_point_pinky)
+        connector_negative();
+    }
+  }
+
+
+
 
   module thumb_contact ()
   { // {{{
@@ -671,13 +823,9 @@ module finger_end()
             rotate(thumb_rotation[1])
             rotate([90,0,0])
             {
-              translate([0,0,-1*thumb_segment_lengths[1]])
+              translate([0,0,-2*thumb_segment_lengths[1]+0.01])
               {
-                cylinder(r1=thumb_radius,r2=1.4*thumb_radius,h=thumb_segment_lengths[1]+0.01);
-              }
-              translate([0,0,-2*thumb_segment_lengths[1]])
-              {
-                cylinder(r=thumb_radius,h=2*thumb_segment_lengths[1]);
+                cylinder(r=thumb_radius+contact_clearance,h=2*thumb_segment_lengths[1]);
               }
             }
         }
@@ -759,53 +907,25 @@ module finger_end()
   thumb_contact();
 
 
-
-
-  // TODO:
-  // Given the coordinates (and rotation) at the fingertip, simply "extend"
-  // something from the knuckles.
-
-
-  /*
-  all_coords = [pinky_coords,ring_coords,middle_coords,index_coords,thumb_coords];
-  all_rotation = [pinky_rotation,ring_rotation,middle_rotation,index_rotation,thumb_rotation];
-  for (k = [0:4])
-  {
-    // illustrate that we have coordinates/rotation in mid-joint, for all joints:
-    for (i = [0:(k==4 ? 2 : 3)])
-    {
-      translate(all_coords[k][i])
-        rotate(all_rotation[k][i])
-        cylinder(r=1,h=5,$fn=10);
-
-      // example placement of a touch button:
-      translate(all_coords[k][k==4?2:3])
-        rotate(all_rotation[k][k==4?2:3])
-        {
-          translate([0,0,-20]) // should probably depend on finger radius
-          cylinder(r=2,h=10,$fn=20);
-        }
-      }
-
-  }
-  */
 } // }}}
 
 
 module body()
 { // {{{
-  body_front_thumb_offset = finger_end_connection_point_thumb;
-  body_front_index_offset = index_joint0_offset + [0,-10,-index_radius-frame_radius];
-  body_front_pinky_offset = pinky_joint0_offset + [-5,-10,-pinky_radius-frame_radius];
+  body_front_thumb_offset = finger_end_connection_point_thumb+[0,-2*connector_depth,0];
+  body_front_index_offset = index_joint0_offset + [0,-10-connector_depth,-index_radius-frame_radius];
+  body_front_pinky_offset = pinky_joint0_offset + [-5,-10-connector_depth,-pinky_radius-frame_radius];
 
-  body_wristaxis_thumbside_offset = wristaxis_thumbside_offset+[0,0,-wristaxis_radius-frame_radius];
-  body_wristaxis_pinkyside_offset = wristaxis_pinkyside_offset+[0,0,-wristaxis_radius-frame_radius];
+  body_finger_end_connection_point_thumb = finger_end_connection_point_thumb + [0,-2*connector_depth-frame_radius,0];
+  body_finger_end_connection_point_index = finger_end_connection_point_index + [0,-2*connector_depth-frame_radius,0];
+  body_finger_end_connection_point_pinky = finger_end_connection_point_pinky + [0,-2*connector_depth-frame_radius,0];
+
 
   // A fairly arbitrary point in the middle of the body shape:
   _base_mcu_corner = [
     0.5*middle_joint0_offset[0]+0.5*ring_joint0_offset[0],
     thumb_coords[1][1]-60,
-    thumb_coords[1][2]];
+    thumb_connection_point[2]];
 
   body_mcu_box_corners = [
     _base_mcu_corner + [0.5*mcu_clearance_wdh[0], 0.5*mcu_clearance_wdh[1],0],
@@ -822,10 +942,12 @@ module body()
         body_front_index_offset,
         body_front_pinky_offset,
         body_front_thumb_offset,
-        finger_end_connection_point_index,
-        finger_end_connection_point_pinky,
-        body_wristaxis_thumbside_offset,
-        body_wristaxis_pinkyside_offset,
+        body_finger_end_connection_point_index,
+        body_finger_end_connection_point_pinky,
+        body_wristaxis_thumbside_upper_offset,
+        body_wristaxis_pinkyside_upper_offset,
+        body_wristaxis_pinkyside_lower_offset,
+        body_wristaxis_thumbside_lower_offset,
         body_mcu_box_corners[0],
         body_mcu_box_corners[1],
         body_mcu_box_corners[2],
@@ -839,34 +961,47 @@ module body()
       }
 
       translate(finger_end_connection_point_thumb)
+        mirror([0,1,0])
         connector_positive();
       translate(finger_end_connection_point_index)
-        connector_positive();
+        mirror([0,1,0])
+          connector_positive();
       translate(finger_end_connection_point_pinky)
-        connector_positive();
+        mirror([0,1,0])
+          connector_positive();
+
+      for (point=[
+        wrist_handle_connection_point_thumb_upper,
+        wrist_handle_connection_point_thumb_lower,
+        wrist_handle_connection_point_pinky_upper,
+        wrist_handle_connection_point_pinky_lower,
+        ])
+        translate(point)
+          connector_positive();
 
       // Connectors in the front:
       cylinder_from_to(
-        0.9*body_front_index_offset+0.1*body_wristaxis_thumbside_offset,
+        0.9*body_front_index_offset+0.1*body_wristaxis_thumbside_upper_offset,
         body_front_thumb_offset,
         frame_radius,frame_radius,
         $fn=30);
 
 
+
       cylinder_from_to(
         body_front_index_offset,
-        finger_end_connection_point_index,
+        body_finger_end_connection_point_index,
         frame_radius,frame_radius,
         $fn=30);
 
       cylinder_from_to(
-        finger_end_connection_point_index,
-        finger_end_connection_point_pinky,
+        body_finger_end_connection_point_index,
+        body_finger_end_connection_point_pinky,
         frame_radius,frame_radius,
         $fn=30);
 
       cylinder_from_to(
-        finger_end_connection_point_pinky,
+        body_finger_end_connection_point_pinky,
         body_front_pinky_offset,
         frame_radius,frame_radius,
         $fn=30);
@@ -874,27 +1009,42 @@ module body()
       // Connectors front to back:
 
       cylinder_from_to(
-        body_front_thumb_offset,
-        0.5*body_front_index_offset+0.5*body_wristaxis_thumbside_offset,
+        body_front_pinky_offset,
+        body_wristaxis_pinkyside_upper_offset,
         frame_radius,frame_radius,
         $fn=30);
 
       cylinder_from_to(
         body_front_pinky_offset,
-        body_wristaxis_pinkyside_offset,
+        body_wristaxis_pinkyside_lower_offset,
         frame_radius,frame_radius,
         $fn=30);
 
       cylinder_from_to(
         body_front_index_offset,
-        body_wristaxis_thumbside_offset,
+        body_wristaxis_thumbside_upper_offset,
         frame_radius,frame_radius,
         $fn=30);
 
       // Connectors in the back
       cylinder_from_to(
-        body_wristaxis_thumbside_offset,
-        body_wristaxis_pinkyside_offset,
+        body_wristaxis_thumbside_upper_offset,
+        body_wristaxis_pinkyside_upper_offset,
+        frame_radius,frame_radius,
+        $fn=30);
+      cylinder_from_to(
+        body_wristaxis_thumbside_upper_offset,
+        body_wristaxis_thumbside_lower_offset,
+        frame_radius,frame_radius,
+        $fn=30);
+      cylinder_from_to(
+        body_wristaxis_pinkyside_upper_offset,
+        body_wristaxis_pinkyside_lower_offset,
+        frame_radius,frame_radius,
+        $fn=30);
+      cylinder_from_to(
+        body_wristaxis_thumbside_lower_offset,
+        body_wristaxis_pinkyside_lower_offset,
         frame_radius,frame_radius,
         $fn=30);
 
@@ -910,13 +1060,29 @@ module body()
         frame_radius,frame_radius,
         $fn=30);
       cylinder_from_to(
-        body_wristaxis_pinkyside_offset,
+        body_wristaxis_pinkyside_upper_offset,
         body_mcu_box_corners[1],
         frame_radius,frame_radius,
         $fn=30);
       cylinder_from_to(
-        body_wristaxis_thumbside_offset,
+        body_wristaxis_thumbside_upper_offset,
         body_mcu_box_corners[2],
+        frame_radius,frame_radius,
+        $fn=30);
+      cylinder_from_to(
+        body_wristaxis_thumbside_lower_offset,
+        body_mcu_box_corners[2],
+        frame_radius,frame_radius,
+        $fn=30);
+      cylinder_from_to(
+        body_wristaxis_pinkyside_lower_offset,
+        body_mcu_box_corners[1],
+        frame_radius,frame_radius,
+        $fn=30);
+
+      cylinder_from_to(
+        body_front_thumb_offset,
+        body_wristaxis_thumbside_lower_offset,
         frame_radius,frame_radius,
         $fn=30);
       cylinder_from_to(
@@ -937,13 +1103,23 @@ module body()
     {
       translate(finger_end_connection_point_thumb)
         mirror([0,1,0])
-          connector_negative(extra_cutout=true);
+          connector_negative(extra_cutout=true,hex=true,clear_for_insertion=false);
       translate(finger_end_connection_point_index)
         mirror([0,1,0])
-          connector_negative(extra_cutout=true);
+          connector_negative(extra_cutout=true,hex=true);
       translate(finger_end_connection_point_pinky)
         mirror([0,1,0])
-          connector_negative(extra_cutout=true);
+          connector_negative(extra_cutout=true,hex=true);
+
+      for (point=[
+        wrist_handle_connection_point_thumb_upper,
+        wrist_handle_connection_point_thumb_lower,
+        wrist_handle_connection_point_pinky_upper,
+        wrist_handle_connection_point_pinky_lower,
+        ])
+        translate(point)
+          connector_negative(extra_cutout=false);
+
       translate(body_mcu_box_corners[2])
         cube(mcu_clearance_wdh);
       
@@ -952,11 +1128,124 @@ module body()
 
 } // }}}
 
+module wrist_handle()
+{ // {{{
+  wrist_handle_wristaxis_front_upper_thumbside = body_wristaxis_thumbside_upper_offset + [0,-4*connector_depth,0];
+  wrist_handle_wristaxis_front_upper_pinkyside = body_wristaxis_pinkyside_upper_offset + [0,-4*connector_depth,0];
+  wrist_handle_wristaxis_front_lower_thumbside = body_wristaxis_thumbside_lower_offset + [0,-2*connector_depth-frame_radius,0];
+  wrist_handle_wristaxis_front_lower_pinkyside = body_wristaxis_pinkyside_lower_offset + [0,-2*connector_depth-frame_radius,0];
+
+  wrist_handle_point_rear_thumbside = body_wristaxis_thumbside_upper_offset + [0,-80,0];
+  wrist_handle_point_rear_pinkyside = body_wristaxis_pinkyside_upper_offset + [0,-80,0];
+
+  wrist_handle_elastic_coords = [
+    0.25*body_wristaxis_thumbside_upper_offset+
+    0.75*wrist_handle_point_rear_thumbside,
+    0.25*body_wristaxis_pinkyside_upper_offset+
+    0.75*wrist_handle_point_rear_pinkyside,
+  ];
+  difference()
+  {
+    union()
+    {
+      for (offs=[
+          wrist_handle_point_rear_thumbside,
+          wrist_handle_point_rear_pinkyside,
+        ])
+      {
+        translate(offs)
+        {
+          sphere(r=frame_radius,$fn=20);
+        }
+      }
+
+      for (point=[
+        wrist_handle_connection_point_thumb_upper,
+        wrist_handle_connection_point_thumb_lower,
+        wrist_handle_connection_point_pinky_upper,
+        wrist_handle_connection_point_pinky_lower,
+        ])
+        translate(point)
+          mirror([0,1,0])
+            connector_positive();
+
+      for (coord=wrist_handle_elastic_coords)
+      {
+        translate(coord)
+        {
+          translate([-5,0,-frame_radius])
+            elastic_clasp_positive();
+        }
+      }
+
+
+      cylinder_from_to(
+        wrist_handle_point_rear_pinkyside,
+        wrist_handle_point_rear_thumbside,
+        frame_radius,frame_radius,
+        $fn=30);
+      cylinder_from_to(
+        wrist_handle_wristaxis_front_upper_thumbside,
+        wrist_handle_point_rear_thumbside,
+        frame_radius,frame_radius,
+        $fn=30);
+      cylinder_from_to(
+        wrist_handle_wristaxis_front_lower_thumbside,
+        wrist_handle_point_rear_pinkyside,
+        frame_radius,frame_radius,
+        $fn=30);
+      cylinder_from_to(
+        wrist_handle_wristaxis_front_upper_pinkyside,
+        wrist_handle_point_rear_pinkyside,
+        frame_radius,frame_radius,
+        $fn=30);
+      cylinder_from_to(
+        wrist_handle_wristaxis_front_lower_pinkyside,
+        wrist_handle_point_rear_thumbside,
+        frame_radius,frame_radius,
+        $fn=30);
+
+    }
+    union()
+    {
+      for (point=[
+        wrist_handle_connection_point_pinky_upper,
+        wrist_handle_connection_point_thumb_upper,
+        ])
+        translate(point)
+          mirror([0,1,0])
+          {
+            connector_negative(extra_cutout=false,clear_for_insertion=false,hex=true);
+            connector_access_negative(hex=true);
+          }
+      for (point=[
+        wrist_handle_connection_point_thumb_lower,
+        wrist_handle_connection_point_pinky_lower,
+        ])
+        translate(point)
+          mirror([0,1,0])
+            connector_negative(extra_cutout=true,hex=true);
+
+
+      for (coord=wrist_handle_elastic_coords)
+      {
+        translate(coord)
+        {
+          translate([-5,0,-frame_radius])
+            elastic_clasp_negative();
+        }
+      }
+    }
+  }
+
+} // }}}
+
 finger_end();
 
 body();
+wrist_handle();
 
-translate([-40,0,0])
+translate([-60,-100,-40])
 test_object();
 
 % hand_model();
