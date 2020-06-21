@@ -68,10 +68,13 @@ index_joint0_rotation  = -10;
 // thumb: rotation around x axis:
 thumb_joint0_rotation  = -110;
 
+// LiPo battery measurements:
+
+lipo_compartment_wdh = [26,44,11];
+
+
 // MCU related measurements:
 
-
-// TODO: total guesswork:
 // (Clearance in the height dimension has to be fairly generous if you're using
 // Dupont cables.)
 mcu_clearance_wdh = [51.5,23.5,30];
@@ -102,7 +105,7 @@ module mcu_clearance_box()
     cube([10,2*frame_radius,5+0.01]);
 }
 
-// Elastiic band width:
+// Elastic band width:
 
 elastic_band_w = 20;
 // measured as compressed, if relevant:
@@ -1079,6 +1082,19 @@ module body()
     _base_mcu_corner + [-0.5*mcu_clearance_wdh[0],0.5*mcu_clearance_wdh[1],0],
   ];
 
+  
+  _lipo_base = body_wristaxis_thumbside_lower_offset+[frame_radius,0,0];
+  lipo_compartment_corners = [
+     _lipo_base+[0,0,lipo_compartment_wdh[0]],
+     _lipo_base,
+     _lipo_base+[lipo_compartment_wdh[1],0,0],
+     _lipo_base+[lipo_compartment_wdh[1],0,lipo_compartment_wdh[0]],
+     /* _lipo_base, */
+     /* _lipo_base+[0,0,-lipo_compartment_wdh[0]], */
+     /* _lipo_base+[lipo_compartment_wdh[1],0,-lipo_compartment_wdh[0]], */
+     /* _lipo_base+[lipo_compartment_wdh[1],0,0], */
+  ];
+
   difference()
   {
     union()
@@ -1097,6 +1113,10 @@ module body()
         body_mcu_box_corners[1],
         body_mcu_box_corners[2],
         body_mcu_box_corners[3],
+        lipo_compartment_corners[0],
+        lipo_compartment_corners[1],
+        lipo_compartment_corners[2],
+        lipo_compartment_corners[3],
         ])
       {
         translate(offs)
@@ -1220,6 +1240,46 @@ module body()
         frame_radius,frame_radius,
         $fn=30);
 
+      // Connectors to the LiPo compartment
+      cylinder_from_to(
+        body_wristaxis_thumbside_upper_offset,
+        lipo_compartment_corners[0],
+        frame_radius,frame_radius,
+        $fn=30);
+      cylinder_from_to(
+        body_wristaxis_thumbside_lower_offset,
+        lipo_compartment_corners[1],
+        frame_radius,frame_radius,
+        $fn=30);
+      cylinder_from_to(
+        body_wristaxis_pinkyside_lower_offset,
+        lipo_compartment_corners[2],
+        frame_radius,frame_radius,
+        $fn=30);
+      cylinder_from_to(
+        body_wristaxis_pinkyside_upper_offset,
+        lipo_compartment_corners[3],
+        frame_radius,frame_radius,
+        $fn=30);
+      hull()
+      {
+        for (i=[0:3])
+        {
+          translate(lipo_compartment_corners[i]+[0,lipo_compartment_wdh[2],0])
+            sphere(r=frame_radius,$fn=30);
+          cylinder_from_to(
+            lipo_compartment_corners[i]+[0,lipo_compartment_wdh[2],0],
+            lipo_compartment_corners[(i+1)%4]+[0,lipo_compartment_wdh[2],0],
+            frame_radius,frame_radius,
+            $fn=30);
+          cylinder_from_to(
+            lipo_compartment_corners[i],
+            lipo_compartment_corners[(i+1)%4],
+            frame_radius,frame_radius,
+            $fn=30);
+        }
+      }
+
       cylinder_from_to(
         body_front_thumb_offset,
         body_wristaxis_thumbside_lower_offset,
@@ -1256,6 +1316,24 @@ module body()
       translate(finger_end_connection_point_pinky)
         mirror([0,1,0])
           connector_negative(extra_cutout=true,hex=true);
+
+      // Cavity for lipo_compartment_wdh:
+      translate(lipo_compartment_corners[1])
+        cube([
+          lipo_compartment_wdh[1],
+          lipo_compartment_wdh[2],
+          2*lipo_compartment_wdh[0]]);
+
+      // Place LiPo cable exit slit
+      translate(
+        lipo_compartment_corners[2]+[
+          -5,
+          lipo_compartment_wdh[2]-0.01,
+          0])
+        cube([
+          5,
+          lipo_compartment_wdh[2],
+          lipo_compartment_wdh[0]-5]);
 
       for (point=[
         wrist_handle_connection_point_thumb_upper,
