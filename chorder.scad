@@ -822,6 +822,93 @@ module hand_model ()
 module finger_end()
 { // {{{
 
+  depth=15;
+  // TODO/FIXME: one should be able to use thumb_coords[2] here, and be
+  // over with it. That places it in a weird spot though, so...
+  scale_for_thumb_contact_offset = 0.65;
+
+  module thumb_contact_positive ()
+  { // {{{
+    union ()
+    {
+      cylinder_from_to(
+        thumb_connection_point,
+        thumb_connection_point+rotation_for_euler_rotations([thumb_joint0_rotation,0,0])*[0,0,scale_for_thumb_contact_offset*thumb_segment_lengths[1]],
+        frame_radius,frame_radius,$fn=30);
+
+      cylinder_from_to(
+        thumb_connection_point,
+        thumb_connection_point+rotation_for_euler_rotations([thumb_joint0_rotation,0,0])*[0,0,scale_for_thumb_contact_offset*thumb_segment_lengths[1]],
+        frame_radius,frame_radius,$fn=30);
+
+      translate(thumb_coords[1])
+        rotate(thumb_rotation[1])
+        rotate([0,90,0])
+          {
+            rotate([90,0,0])
+            for (a=[-90,90])
+            rotate([a,90,90])
+              translate([0,thumb_radius+contact_clearance,0])
+              rotate([-90,0,0])
+              cylinder(r=5,h=contact_clearance);
+            rotate([-90,-90,0])
+            rotate_extrude(angle=180,$fn=60)
+            {
+              translate([thumb_radius+contact_clearance,-5,0])
+              square([2*contact_clearance,10]);
+            }
+          }
+
+      translate(thumb_coords[1])
+        rotate(thumb_rotation[1])
+        mirror([0,0,1])
+          {
+            translate([0,0,thumb_radius+contact_clearance])
+              cylinder(r=frame_radius,h=thumb_connection_point_translation_distance-thumb_radius-contact_clearance,$fn=30);
+          }
+
+      translate(thumb_coords[1])
+        rotate(thumb_rotation[1])
+        translate([0,scale_for_thumb_contact_offset*thumb_segment_lengths[1],-depth])
+        contact_positive();
+
+    // Place the far thumb and near thumb buttons where they need to be:
+      translate(thumb_coords[1])
+        rotate(thumb_rotation[1])
+        rotate([0,90,0])
+        translate([0,0,-thumb_radius-contact_clearance])
+        contact_positive();
+
+      translate(thumb_coords[1])
+        rotate(thumb_rotation[1])
+        rotate([0,-90,0])
+        translate([0,0,-thumb_radius-contact_clearance])
+        contact_positive();
+    }
+  } // }}}
+
+  module thumb_contact_negative ()
+  { // {{{
+    union ()
+    {
+      translate(thumb_coords[1])
+        rotate(thumb_rotation[1])
+        {
+          // Negative parts of contact:
+          translate([0,scale_for_thumb_contact_offset*thumb_segment_lengths[1],-depth])
+          rotate([0,0,90])
+            contact_negative();
+
+          // Place the far thumb and near thumb buttons where they need to be:
+          rotate([0,90,0])
+            translate([0,0,-thumb_radius-contact_clearance])
+            contact_negative();
+          rotate([0,-90,0])
+            translate([0,0,-thumb_radius-contact_clearance])
+            contact_negative();
+        }
+    }
+  } // }}}
 
   module contact_outrigger (joint0_offset,radius,coords,rotations)
   { // {{{
@@ -937,6 +1024,8 @@ module finger_end()
         connector_positive();
       translate(finger_end_connection_point_pinky)
         connector_positive();
+
+      thumb_contact_positive();
     }
     union()
     {
@@ -946,102 +1035,9 @@ module finger_end()
         connector_negative();
       translate(finger_end_connection_point_pinky)
         connector_negative();
+      thumb_contact_negative();
     }
   }
-
-
-  module thumb_contact ()
-  { // {{{
-    depth=15;
-    // TODO/FIXME: one should be able to use thumb_coords[2] here, and be
-    // over with it. That places it in a weird spot though, so...
-    scale_for_thumb_contact_offset = 0.65;
-
-    difference()
-    {
-      union ()
-      {
-        cylinder_from_to(
-          thumb_connection_point,
-          thumb_connection_point+rotation_for_euler_rotations([thumb_joint0_rotation,0,0])*[0,0,scale_for_thumb_contact_offset*thumb_segment_lengths[1]],
-          frame_radius,frame_radius,$fn=30);
-
-        cylinder_from_to(
-          thumb_connection_point,
-          thumb_connection_point+rotation_for_euler_rotations([thumb_joint0_rotation,0,0])*[0,0,scale_for_thumb_contact_offset*thumb_segment_lengths[1]],
-          frame_radius,frame_radius,$fn=30);
-
-        translate(thumb_coords[1])
-          rotate(thumb_rotation[1])
-          rotate([0,90,0])
-            {
-              rotate([90,0,0])
-              for (a=[-90,90])
-              rotate([a,90,90])
-                translate([0,thumb_radius+contact_clearance,0])
-                rotate([-90,0,0])
-                cylinder(r=5,h=contact_clearance);
-              rotate([-90,-90,0])
-              rotate_extrude(angle=180,$fn=60)
-              {
-                translate([thumb_radius+contact_clearance,-5,0])
-                square([2*contact_clearance,10]);
-              }
-            }
-
-        translate(thumb_coords[1])
-          rotate(thumb_rotation[1])
-          mirror([0,0,1])
-            {
-              translate([0,0,thumb_radius+contact_clearance])
-                cylinder(r=frame_radius,h=thumb_connection_point_translation_distance-thumb_radius-contact_clearance,$fn=30);
-            }
-
-        translate(thumb_coords[1])
-          rotate(thumb_rotation[1])
-          translate([0,scale_for_thumb_contact_offset*thumb_segment_lengths[1],-depth])
-          contact_positive();
-
-      // Place the far thumb and near thumb buttons where they need to be:
-        translate(thumb_coords[1])
-          rotate(thumb_rotation[1])
-          rotate([0,90,0])
-          translate([0,0,-thumb_radius-contact_clearance])
-          contact_positive();
-
-        translate(thumb_coords[1])
-          rotate(thumb_rotation[1])
-          rotate([0,-90,0])
-          translate([0,0,-thumb_radius-contact_clearance])
-          contact_positive();
-      
-      }
-
-      union ()
-      {
-        translate(thumb_coords[1])
-          rotate(thumb_rotation[1])
-          {
-            // Negative parts of contact:
-            translate([0,scale_for_thumb_contact_offset*thumb_segment_lengths[1],-depth])
-            rotate([0,0,90])
-              contact_negative();
-
-            // Place the far thumb and near thumb buttons where they need to be:
-            rotate([0,90,0])
-              translate([0,0,-thumb_radius-contact_clearance])
-              contact_negative();
-            rotate([0,-90,0])
-              translate([0,0,-thumb_radius-contact_clearance])
-              contact_negative();
-          }
-      }
-
-    }
-  } // }}}
-
-  thumb_contact();
-
 
 } // }}}
 
