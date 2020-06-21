@@ -39,7 +39,7 @@ pinky_radius  =  7.5;
 ring_radius   =  9.0;
 middle_radius = 10.0;
 index_radius  = 10.0;
-thumb_radius  = 13.0;
+thumb_radius  = 11.0;
 
 // Angles at joint 0, joint 1 and joint 2, for a "comfortably glove-shaped" hand:
 pinky_angles  = [20,37,33];
