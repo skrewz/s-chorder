@@ -74,18 +74,24 @@ thumb_joint0_rotation  = -110;
 // TODO: total guesswork:
 // (Clearance in the height dimension has to be fairly generous if you're using
 // Dupont cables.)
-mcu_clearance_wdh = [51.5,23,30];
+mcu_clearance_wdh = [51.5,23.5,30];
 mcu_wall_w = 1.5;
 
 // the module used to subtract clearance for your particular mcu:
 module mcu_clearance_box()
 {
+  // This is for an Adafruit Feather 32u4 BLE
+  //
+  // https://learn.adafruit.com/adafruit-feather-32u4-bluefruit-le/overview
+  usb_clear_wh = [10.5,10];
+  usb_vertical_offset = -1.5;
   cube(mcu_clearance_wdh);
   // USB charging cable entry:
-  translate([-15,mcu_clearance_wdh[1]/2-10/2,1])
-    cube([30,10,5+0.01]);
+  translate([-15,mcu_clearance_wdh[1]/2-usb_clear_wh[0]/2,usb_vertical_offset])
+    cube([30,usb_clear_wh[0],usb_clear_wh[1]+0.01]);
+
   // Battery connector (in reality from 8 to 14 mm from the end of board):
-  translate([3,mcu_clearance_wdh[1]-0.01,1])
+  translate([5,mcu_clearance_wdh[1]-0.01,1])
     cube([10,10,5+0.01]);
 }
 
