@@ -1,3 +1,10 @@
+// TODO: Whole thing should be much more comprehensively commented
+// TODO: test object should have contacts at weird angles
+// TODO: test object should include connector_positive/connector_negative
+// TODO: model should echo() absolute positions of buttons, relative to some
+//       known point (connection point?)
+
+
 /*****************************************************************************/
 /* Likely calibration properties                                             */
 /*****************************************************************************/
@@ -49,15 +56,17 @@ middle_joint0_offset = [  64,   0,  0];
 index_joint0_offset  = [  32,  -2,  0];
 thumb_joint0_offset  = [   5, -50,-40];
 
-wristaxis_thumbside_upper_offset  = [  32, -120,-25];
-wristaxis_pinkyside_upper_offset  = [ 112, -120,-25];
+wristaxis_thumbside_upper_offset  = [  37, -80,-15];
+wristaxis_pinkyside_upper_offset  = [  97, -80,-15];
 wristaxis_radius = 20;
 
+// four fingers: rotation around y axis:
 pinky_joint0_rotation  =  17;
 ring_joint0_rotation   =   9;
 middle_joint0_rotation =  -3;
 index_joint0_rotation  = -10;
-thumb_joint0_rotation  = -90;
+// thumb: rotation around x axis:
+thumb_joint0_rotation  = -110;
 
 // MCU related measurements:
 
@@ -65,8 +74,20 @@ thumb_joint0_rotation  = -90;
 // TODO: total guesswork:
 // (Clearance in the height dimension has to be fairly generous if you're using
 // Dupont cables.)
-mcu_clearance_wdh = [25,45,30];
+mcu_clearance_wdh = [51.5,23,30];
 mcu_wall_w = 1.5;
+
+// the module used to subtract clearance for your particular mcu:
+module mcu_clearance_box()
+{
+  cube(mcu_clearance_wdh);
+  // USB charging cable entry:
+  translate([-15,mcu_clearance_wdh[1]/2-10/2,1])
+    cube([30,10,5+0.01]);
+  // Battery connector (in reality from 8 to 14 mm from the end of board):
+  translate([3,mcu_clearance_wdh[1]-0.01,1])
+    cube([10,10,5+0.01]);
+}
 
 // Elastiic band width:
 
@@ -87,20 +108,27 @@ m3_radius = 1.5;
 // so that an m3 bolt can be passed through without too much effort:
 m3_clear_radius = 1.7;
 
+m3_bolt_visualisation_height = 23;
+
 m3_head_radius = 3; // from memory
 m3_head_clear_radius = 3.2; // from memory
 m3_nut_clear_radius = 3.4; // When creating $fn=6 cutouts for these
+m3_nut_clear_height = 4; // When creating $fn=6 cutouts for these
 m3_head_height = 2; // from memory
+m3_nut_holder_wall_w = 1;
 
+
+connector_depth = 2;
+
+// how much to depress (in the z direction) contact_{positive,negative} given
+// that the contact point is at z=0.
+contact_z_depress = 15;
+// how much depression of spring before electrical contact is made:
+contact_clearance = 2;
 // 0.3mm wire diameter 10 mm high 6mm outer diameter springs:
 // https://www.aliexpress.com/item/33050149067.html
 spring_radius = 3;
 spring_height = 10;
-
-connector_depth = 2;
-
-// how much depression of spring before electrical contact is made:
-contact_clearance = 1;
 
 // how far down (perspective of joint1 on the thumb) the connection point is placed:
 thumb_connection_point_translation_distance = 2*thumb_radius;
@@ -249,9 +277,9 @@ thumb_rotation = [ for (i=[0:2])
   [
     // Ternary expression necessary to handle that there is no angle available
     // at joint2 for a thumb:
-    sum([for (j=[0:i]) thumb_angles[j] ? -thumb_angles[j] : 0]),
+    90+sum([for (j=[0:i]) thumb_angles[j] ? -thumb_angles[j] : 0]), // always 0 when rotating in y and x axes
     thumb_joint0_rotation,
-    0, // always 0 when rotating in y and x axes
+    -90,
   ],
 ];
 
@@ -379,6 +407,100 @@ module elastic_clasp_negative()
   }
 } // }}}
 
+rounding_r = 2;
+clasp_length = elastic_band_clearing_w+2*elastic_band_wall_w+2*m3_head_clear_radius+2*m3_clear_radius-2*rounding_r;
+loose_clasp_length = clasp_length + 2*m3_head_clear_radius+2*m3_clear_radius+2*rounding_r+2*elastic_band_wall_w;
+
+module elastic_clip_positive()
+{ // {{{
+
+  rotate([0,90,0])
+  translate([-frame_radius,0,-3*frame_radius])
+  minkowski()
+  {
+    cylinder(r=rounding_r,h=0.01,$fn=20);
+    translate([rounding_r,rounding_r,0])
+      cube([2*frame_radius-2*rounding_r,
+        clasp_length-2*rounding_r,
+        3*frame_radius]);
+  }
+
+  module clasp_together()
+  {
+    difference()
+    {
+      translate([0,0,0])
+        hull()
+        {
+            rotate([-90,0,0])
+              for (o=[0,1*frame_radius])
+              translate([o,0,0])
+              cylinder(r=rounding_r,h=loose_clasp_length,$fn=20);
+        }
+      translate([0.5*frame_radius,0,0])
+      {
+        translate([0,0,-frame_radius])
+          {
+            for (offs = [
+              elastic_band_wall_w+1*m3_head_clear_radius,
+              loose_clasp_length-(elastic_band_wall_w+1*m3_head_clear_radius)])
+            {
+              translate([
+                0,
+                offs,
+                -elastic_band_wall_w-elastic_band_thickness-0.01])
+                {
+                  cylinder(r=m3_clear_radius,h=3*frame_radius,$fn=20);
+                }
+            }
+          }
+      }
+    }
+  }
+
+  module clasp_one_side()
+  {
+    intersection()
+    {
+      translate([-frame_radius,0,0])
+        cube([3*frame_radius,loose_clasp_length,rounding_r]);
+      clasp_together();
+    }
+  }
+
+  rotate([0,90,0])
+    translate([0,-(loose_clasp_length-clasp_length)/2,-4*frame_radius])
+    {
+      clasp_one_side();
+
+      translate([0,0,-elastic_band_thickness])
+        mirror([0,0,1])
+        clasp_one_side();
+    }
+
+} // }}}
+
+module elastic_clip_negative()
+{ // {{{
+  rotate([0,90,0])
+  translate([-frame_radius,0,-3*frame_radius])
+  translate([1.2*frame_radius,-0.01,frame_radius])
+    rotate([-90,0,0])
+    {
+      hull()
+      {
+        for (o=[0,frame_radius])
+          translate([o,0,0])
+          cylinder(r=rounding_r+1.5*elastic_band_thickness,h=0.02+clasp_length,$fn=20);
+      }
+    }
+  rotate([0,90,0])
+  translate([-frame_radius,0,-3*frame_radius])
+  translate([-0.01,(clasp_length-elastic_band_clearing_w)/2,-0.01])
+    cube([0.02+2*frame_radius,elastic_band_clearing_w,2*frame_radius]);
+
+} // }}}
+
 module connector_positive()
 { // {{{
   rotate([-90,0,0])
@@ -430,9 +552,9 @@ module connector_access_negative(hex=false)
         translate([0,t,m3_head_height])
           if (hex)
             rotate([0,0,0.5*360/6])
-              cylinder(r=m3_nut_clear_radius,h=15,$fn=6);
+              cylinder(r=m3_nut_clear_radius,h=m3_nut_clear_height,$fn=6);
           else
-            cylinder(r=m3_head_clear_radius,h=15,$fn=20);
+            cylinder(r=m3_head_clear_radius,h=m3_nut_clear_height,$fn=20);
       }
     }
   }
@@ -489,60 +611,66 @@ module final_segment (length,radius)
 
 } // }}}
 
-module contact_negative ()
+module compass ()
 { // {{{
-  translate([0,0,-8])
+  $fn=20;
+  % union ()
   {
-    cylinder(r=m3_nut_clear_radius,h=15,$fn=6);
-  }
-  translate([0,0,-11])
-  {
-    cylinder(r=m3_clear_radius,h=15,$fn=20);
-  }
-
-  translate([0,0,-20])
-  {
-    cylinder(r=m3_head_radius,h=10,$fn=20);
-  }
-} // }}}
-
-module contact_negative_springvers ()
-{ // {{{
-  translate([0,0,-8])
-  {
-    cylinder(r=spring_radius+0.4,h=15,$fn=20);
-  }
-  translate([0,0,-11])
-  {
-    cylinder(r=m3_clear_radius,h=15,$fn=20);
-  }
-
-  translate([0,0,-20])
-  {
-    cylinder(r=m3_head_radius,h=10,$fn=20);
-  }
-} // }}}
-
-module contact_positive ()
-{ // {{{
-  %
-  translate([0,0,-8])
-  {
-    translate([0,0,-6])
+    color("red")
     {
-      color("#222222")
-      cylinder(r=m3_radius,h=15,$fn=30);
-
-      color("#222222")
-      cylinder(r=m3_head_radius,h=m3_head_radius,$fn=30);
+      cylinder_from_to([0,0,0],[18,0,0],0.2,0.2);
+      cylinder_from_to([18,0,0],[20,0,0],0.6,0.01);
+    }
+    color("green")
+    {
+      cylinder_from_to([0,0,0],[0,18,0],0.2,0.2);
+      cylinder_from_to([0,18,0],[0,20,0],0.6,0.01);
+    }
+    color("blue")
+    {
+      cylinder_from_to([0,0,0],[0,0,18],0.2,0.2);
+      cylinder_from_to([0,0,18],[0,0,20],0.6,0.01);
     }
   }
 } // }}}
 
-module contact_positive_springvers ()
+module contact_negative ()
 { // {{{
+  translate([0,0,-spring_height-m3_nut_holder_wall_w-m3_nut_clear_height])
+  {
+    hull()
+    {
+      translate([0,15,0])
+        rotate([0,0,360/12])
+        cylinder(r=m3_nut_clear_radius,h=m3_nut_clear_height,$fn=6);
+      rotate([0,0,360/12])
+        cylinder(r=m3_nut_clear_radius,h=m3_nut_clear_height,$fn=6);
+    }
+    translate([0,0,m3_nut_clear_height+m3_nut_holder_wall_w])
+    {
+      cylinder(r=spring_radius+0.4,h=2*spring_height,$fn=20);
+    }
+    // punch through the main m3 axis:
+    translate([0,0,-m3_nut_holder_wall_w-m3_nut_clear_height])
+      cylinder(r=m3_clear_radius,h=m3_bolt_visualisation_height,$fn=20);
+  }
+  // punch through the head spacing
+  translate([0,0,-contact_z_depress-m3_nut_clear_height-0.01])
+    mirror([0,0,1])
+    cylinder(r=m3_head_clear_radius,h=10,$fn=20);
+
+} // }}}
+
+module contact_positive ()
+{ // {{{
+
+  // a cylinder to hold bolt and spring:
+  translate([0,0,-contact_z_depress-m3_nut_clear_height])
+    cylinder(r=5,h=contact_z_depress+m3_nut_clear_height,$fn=30);
+
   %
-  translate([0,0,-8])
+  // a grey spring in place:
+  translate([0,0,-(spring_height-contact_clearance)])
   {
     color("silver")
     difference()
@@ -551,15 +679,17 @@ module contact_positive_springvers ()
       translate([0,0,-0.02])
         cylinder(r=spring_radius-0.3,h=2*spring_height,$fn=30);
     }
-    translate([0,0,-6])
-    {
-      color("#222222")
-      // FIXME: calculate this from contact_clearance:
-      cylinder(r=m3_radius,h=15,$fn=30);
+  }
 
-      color("#222222")
-      cylinder(r=m3_head_radius,h=m3_head_radius,$fn=30);
-    }
+  %
+  // a black bolt in place:
+  translate([0,0,-m3_bolt_visualisation_height])
+  {
+    color("#222222")
+    cylinder(r=m3_radius,h=m3_bolt_visualisation_height,$fn=30);
+
+    color("#222222")
+    cylinder(r=m3_head_radius,h=m3_head_radius,$fn=30);
   }
 } // }}}
 
@@ -646,23 +776,22 @@ module hand_model ()
     }
   }
 
-  translate(thumb_joint0_offset)
-  {
-    rotate([0,thumb_joint0_rotation,0])
-    {
-      rotate([-thumb_joint0_offset[0]-90,0,0])
-      {
-        segment(thumb_segment_lengths[0]-thumb_radius,thumb_radius);
-        translate([0,0,thumb_segment_lengths[0]-thumb_radius])
-          rotate([-thumb_angles[1],0,0])
-            final_segment(thumb_segment_lengths[1],thumb_radius);
-      }
-    }
-  }
+  for (coord=thumb_coords)
+    translate(coord)
+      sphere(r=thumb_radius);
+    
+  cylinder_from_to(thumb_coords[0],thumb_coords[1],thumb_radius,thumb_radius);
+  cylinder_from_to(thumb_coords[1],thumb_coords[2],thumb_radius,thumb_radius);
+  /*
+  translate(thumb_coords[1])
+    rotate(thumb_rotation[1])
+      final_segment(thumb_segment_lengths[1],thumb_radius);
+  */
 
   cylinder_from_to(index_joint0_offset,middle_joint0_offset,index_radius,middle_radius,$fn=40);
   cylinder_from_to(middle_joint0_offset,ring_joint0_offset,middle_radius,ring_radius,$fn=40);
   cylinder_from_to(ring_joint0_offset,pinky_joint0_offset,ring_radius,pinky_radius,$fn=40);
+
 
   cylinder_from_to(thumb_joint0_offset,wristaxis_thumbside_upper_offset,thumb_radius,wristaxis_radius,$fn=40);
   cylinder_from_to(pinky_joint0_offset,wristaxis_pinkyside_upper_offset,pinky_radius,wristaxis_radius,$fn=40);
@@ -688,26 +817,35 @@ module finger_end()
     {
       union()
       {
-        cylinder_from_to(
-          joint0_offset+[0,0,-radius-frame_radius],
-          coords[3]+[0,-10,0],
-          frame_radius,frame_radius,$fn=40);
+          hull()
+          {
+            cylinder_from_to(
+              joint0_offset+[0,0,-radius-frame_radius],
+              coords[3]+[0,-10,0],
+              frame_radius,frame_radius,$fn=40);
+
+            cylinder_from_to(
+              joint0_offset+[0,0,-radius-frame_radius],
+                coords[3]+rotation_for_euler_rotations(rotations[3])*[0,0,-radius-contact_z_depress-m3_nut_clear_height-m3_nut_holder_wall_w],
+              frame_radius,frame_radius,$fn=40);
+          }
 
           translate(coords[3])
             rotate(rotations[3])
             rotate([90,0,0])
-            translate([0,-radius,0*radius])
+            translate([0,-6,-1*radius])
             {
-              cylinder(r=radius,h=1*radius,$fn=40);
-          //    sphere(r=radius);
+              minkowski()
+              {
+                sphere(r=1,$fn=20);
+                cylinder(r=1+radius,h=2*radius,$fn=40);
+              }
             }
 
         translate(coords[3])
           rotate(rotations[3])
-          translate([0,0,-10])
+          translate([0,0,-radius-4])
           {
-            translate([0,0,-10])
-              cylinder(r=5,h=10,$fn=30);
             contact_positive();
           }
 
@@ -715,9 +853,10 @@ module finger_end()
 
       translate(coords[3])
         rotate(rotations[3])
-        translate([0,0,-10])
+        translate([0,0,-radius-4])
         {
-          contact_negative();
+          rotate([0,0,90])
+            contact_negative();
         }
 
       translate(coords[2])
@@ -730,6 +869,10 @@ module finger_end()
         rotate([90,0,0])
         translate([0,-4,-10-radius])
           cylinder(r=radius,h=60);
+      translate(coords[3])
+        rotate(rotations[2])
+        translate([-2*radius,-2*radius,-4])
+        cube([4*radius,5*radius,3*radius]);
     }
   } // }}}
 
@@ -795,113 +938,94 @@ module finger_end()
   }
 
 
-
-
   module thumb_contact ()
   { // {{{
-    depth=10;
+    depth=15;
+    // TODO/FIXME: one should be able to use thumb_coords[2] here, and be
+    // over with it. That places it in a weird spot though, so...
+    scale_for_thumb_contact_offset = 0.65;
+
     difference()
     {
       union ()
       {
-        // longer outrigger
-        difference()
-        {
-          translate(thumb_coords[1])
-            rotate(thumb_rotation[1])
-            rotate([90,0,0])
-            {
-              translate([0,-depth,-0.8*thumb_segment_lengths[1]])
-              {
-                cylinder(r=thumb_radius,h=0.8*thumb_segment_lengths[1]);
-              }
-              translate([0,-depth,-0.8*thumb_segment_lengths[1]])
-                sphere(r=thumb_radius);
-            }
-          // a thumb_radius cutout for a thumb:
-          translate(thumb_coords[1])
-            rotate(thumb_rotation[1])
-            rotate([90,0,0])
-            {
-              translate([0,0,-2*thumb_segment_lengths[1]+0.01])
-              {
-                cylinder(r=thumb_radius+contact_clearance,h=2*thumb_segment_lengths[1]);
-              }
-            }
-        }
+        cylinder_from_to(
+          thumb_connection_point,
+          thumb_connection_point+rotation_for_euler_rotations([thumb_joint0_rotation,0,0])*[0,0,scale_for_thumb_contact_offset*thumb_segment_lengths[1]],
+          frame_radius,frame_radius,$fn=30);
+
+        cylinder_from_to(
+          thumb_connection_point,
+          thumb_connection_point+rotation_for_euler_rotations([thumb_joint0_rotation,0,0])*[0,0,scale_for_thumb_contact_offset*thumb_segment_lengths[1]],
+          frame_radius,frame_radius,$fn=30);
 
         translate(thumb_coords[1])
           rotate(thumb_rotation[1])
           rotate([0,90,0])
-          {
-            rotate([90,0,0])
-            difference()
             {
-              translate([0,0,-7])
-              cylinder(r=(thumb_radius-10+thumb_radius+10-8),h=14);
-              translate([0,0,-0.01])
+              rotate([90,0,0])
+              for (a=[-90,90])
+              rotate([a,90,90])
+                translate([0,thumb_radius+contact_clearance,0])
+                rotate([-90,0,0])
+                cylinder(r=5,h=contact_clearance);
+              rotate([-90,-90,0])
+              rotate_extrude(angle=180,$fn=60)
               {
-                translate([-2*thumb_radius,-2*thumb_radius,-7-0.01])
-                cube([2*thumb_radius,4*thumb_radius,1.02+14]);
-                translate([0,0,-7])
-                cylinder(r=thumb_radius+1*contact_clearance,h=0.02+14);
+                translate([thumb_radius+contact_clearance,-5,0])
+                square([2*contact_clearance,10]);
               }
             }
-            for (trans=[-thumb_radius-10-contact_clearance,thumb_radius+contact_clearance])
-              translate([0,0,trans])
-              {
-                cylinder(r=7,h=10);
+
+        translate(thumb_coords[1])
+          rotate(thumb_rotation[1])
+          mirror([0,0,1])
+            {
+              translate([0,0,thumb_radius+contact_clearance])
+                cylinder(r=frame_radius,h=thumb_connection_point_translation_distance-thumb_radius-contact_clearance,$fn=30);
             }
-          }
-      translate(thumb_coords[1])
-        rotate(thumb_rotation[1])
-        mirror([0,0,1])
-        {
-          translate([0,0,thumb_radius+contact_clearance])
-            cylinder(r=frame_radius,h=thumb_connection_point_translation_distance-thumb_radius-contact_clearance,$fn=30);
-        }
-      }
 
-
-
-      // Negative parts of contact:
-      // TODO/FIXME: one should be able to use thumb_coords[2] here, and be
-      // over with it. That places it in a weird spot though, so...
-      translate(thumb_coords[1])
-        rotate(thumb_rotation[2])
-        translate([0,0.75*thumb_segment_lengths[1],-depth])
-        contact_negative();
+        translate(thumb_coords[1])
+          rotate(thumb_rotation[1])
+          translate([0,scale_for_thumb_contact_offset*thumb_segment_lengths[1],-depth])
+          contact_positive();
 
       // Place the far thumb and near thumb buttons where they need to be:
-      translate(thumb_coords[1])
-        rotate(thumb_rotation[1])
-        rotate([0,90,0])
-        translate([0,0,-thumb_radius-contact_clearance])
-        contact_negative();
-      translate(thumb_coords[1])
-        rotate(thumb_rotation[1])
-        rotate([0,-90,0])
-        translate([0,0,-thumb_radius-contact_clearance])
-        contact_negative();
+        translate(thumb_coords[1])
+          rotate(thumb_rotation[1])
+          rotate([0,90,0])
+          translate([0,0,-thumb_radius-contact_clearance])
+          contact_positive();
+
+        translate(thumb_coords[1])
+          rotate(thumb_rotation[1])
+          rotate([0,-90,0])
+          translate([0,0,-thumb_radius-contact_clearance])
+          contact_positive();
+      
+      }
+
+      union ()
+      {
+        translate(thumb_coords[1])
+          rotate(thumb_rotation[1])
+          {
+            // Negative parts of contact:
+            translate([0,scale_for_thumb_contact_offset*thumb_segment_lengths[1],-depth])
+            rotate([0,0,90])
+              contact_negative();
+
+            // Place the far thumb and near thumb buttons where they need to be:
+            rotate([0,90,0])
+              translate([0,0,-thumb_radius-contact_clearance])
+              contact_negative();
+            rotate([0,-90,0])
+              translate([0,0,-thumb_radius-contact_clearance])
+              contact_negative();
+          }
+      }
 
     }
-    // TODO/FIXME: same comment as with contact_negative
-    translate(thumb_coords[1])
-      rotate(thumb_rotation[2])
-      translate([0,0.75*thumb_segment_lengths[1],-depth])
-      contact_positive();
-
-    // Place the far thumb and near thumb buttons where they need to be:
-    translate(thumb_coords[1])
-      rotate(thumb_rotation[1])
-      rotate([0,90,0])
-      translate([0,0,-thumb_radius-contact_clearance])
-      contact_positive();
-    translate(thumb_coords[1])
-      rotate(thumb_rotation[1])
-      rotate([0,-90,0])
-      translate([0,0,-thumb_radius-contact_clearance])
-      contact_positive();
   } // }}}
 
   thumb_contact();
@@ -923,9 +1047,9 @@ module body()
 
   // A fairly arbitrary point in the middle of the body shape:
   _base_mcu_corner = [
-    0.5*middle_joint0_offset[0]+0.5*ring_joint0_offset[0],
-    thumb_coords[1][1]-60,
-    thumb_connection_point[2]];
+    0.4*index_joint0_offset[0]+0.6*ring_joint0_offset[0],
+    0.5*thumb_coords[1][1]+0.5*wristaxis_thumbside_upper_offset[1],
+    -70];
 
   body_mcu_box_corners = [
     _base_mcu_corner + [0.5*mcu_clearance_wdh[0], 0.5*mcu_clearance_wdh[1],0],
@@ -981,7 +1105,8 @@ module body()
 
       // Connectors in the front:
       cylinder_from_to(
-        0.9*body_front_index_offset+0.1*body_wristaxis_thumbside_upper_offset,
+        body_front_index_offset,
+        //0.9*body_front_index_offset+0.1*body_wristaxis_thumbside_upper_offset,
         body_front_thumb_offset,
         frame_radius,frame_radius,
         $fn=30);
@@ -1017,12 +1142,6 @@ module body()
       cylinder_from_to(
         body_front_pinky_offset,
         body_wristaxis_pinkyside_lower_offset,
-        frame_radius,frame_radius,
-        $fn=30);
-
-      cylinder_from_to(
-        body_front_index_offset,
-        body_wristaxis_thumbside_upper_offset,
         frame_radius,frame_radius,
         $fn=30);
 
@@ -1098,6 +1217,12 @@ module body()
           body_mcu_box_corners[(i+1)%4],
           frame_radius,frame_radius,
           $fn=30);
+
+      // Illustrate where the MCU sits:
+      %
+      translate(body_mcu_box_corners[2])
+        color([0,0,1,0.2])
+        mcu_clearance_box();
     }
     union()
     {
@@ -1121,7 +1246,7 @@ module body()
           connector_negative(extra_cutout=false);
 
       translate(body_mcu_box_corners[2])
-        cube(mcu_clearance_wdh);
+        mcu_clearance_box();
       
     }
   }
@@ -1139,8 +1264,6 @@ module wrist_handle()
   wrist_handle_point_rear_pinkyside = body_wristaxis_pinkyside_upper_offset + [0,-80,0];
 
   wrist_handle_elastic_coords = [
-    0.25*body_wristaxis_thumbside_upper_offset+
-    0.75*wrist_handle_point_rear_thumbside,
     0.25*body_wristaxis_pinkyside_upper_offset+
     0.75*wrist_handle_point_rear_pinkyside,
   ];
@@ -1176,6 +1299,12 @@ module wrist_handle()
           translate([-5,0,-frame_radius])
             elastic_clasp_positive();
         }
+      }
+
+      translate(0.25*body_wristaxis_thumbside_upper_offset+
+          0.75*wrist_handle_point_rear_thumbside)
+      {
+        elastic_clip_positive();
       }
 
 
@@ -1234,6 +1363,12 @@ module wrist_handle()
           translate([-5,0,-frame_radius])
             elastic_clasp_negative();
         }
+      }
+
+      translate(0.25*body_wristaxis_thumbside_upper_offset+
+          0.75*wrist_handle_point_rear_thumbside)
+      {
+        elastic_clip_negative();
       }
     }
   }
