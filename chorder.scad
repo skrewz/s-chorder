@@ -108,11 +108,12 @@ m3_radius = 1.5;
 // so that an m3 bolt can be passed through without too much effort:
 m3_clear_radius = 1.7;
 
-m3_bolt_visualisation_height = 23;
+m3_bolt_visualisation_height = 26;
 
 m3_head_radius = 3; // from memory
 m3_head_clear_radius = 3.2; // from memory
 m3_nut_clear_radius = 3.4; // When creating $fn=6 cutouts for these
+m3_nut_height = 2; // actual height (for visualisation)
 m3_nut_clear_height = 4; // When creating $fn=6 cutouts for these
 m3_head_height = 2; // from memory
 m3_nut_holder_wall_w = 1;
@@ -657,7 +658,7 @@ module contact_negative ()
   // punch through the head spacing
   translate([0,0,-contact_z_depress-m3_nut_clear_height-0.01])
     mirror([0,0,1])
-    cylinder(r=m3_head_clear_radius,h=10,$fn=20);
+    cylinder(r=1.1*max(m3_head_clear_radius,m3_nut_clear_radius),h=10,$fn=20);
 
 } // }}}
 
@@ -680,6 +681,17 @@ module contact_positive ()
         cylinder(r=spring_radius-0.3,h=2*spring_height,$fn=30);
     }
   }
+
+  // Visualise locations of nuts
+  %
+  translate([0,0,-spring_height-m3_nut_holder_wall_w-m3_nut_clear_height])
+    color("#222222")
+    cylinder(r=m3_nut_clear_radius,h=m3_nut_height,$fn=6);
+
+  %
+  translate([0,0,-contact_z_depress-m3_nut_clear_height-m3_nut_height])
+    color("#222222")
+    cylinder(r=m3_nut_clear_radius,h=m3_nut_height,$fn=6);
 
   %
   // a black bolt in place:
