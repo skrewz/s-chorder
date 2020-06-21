@@ -86,13 +86,20 @@ module mcu_clearance_box()
   usb_clear_wh = [10.5,10];
   usb_vertical_offset = -1.5;
   cube(mcu_clearance_wdh);
+
   // USB charging cable entry:
-  translate([-15,mcu_clearance_wdh[1]/2-usb_clear_wh[0]/2,usb_vertical_offset])
-    cube([30,usb_clear_wh[0],usb_clear_wh[1]+0.01]);
+  translate([
+    mcu_clearance_wdh[0]-0.01,
+    mcu_clearance_wdh[1]/2-usb_clear_wh[0]/2,
+    usb_vertical_offset])
+    cube([frame_radius+0.02,usb_clear_wh[0],usb_clear_wh[1]+0.01]);
 
   // Battery connector (in reality from 8 to 14 mm from the end of board):
-  translate([5,mcu_clearance_wdh[1]-0.01,1])
-    cube([10,10,5+0.01]);
+  translate([
+    mcu_clearance_wdh[0]-5-10,
+    -frame_radius,
+    1])
+    cube([10,2*frame_radius,5+0.01]);
 }
 
 // Elastiic band width:
