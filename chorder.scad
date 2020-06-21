@@ -1068,6 +1068,9 @@ module body()
   body_finger_end_connection_point_index = finger_end_connection_point_index + [0,-2*connector_depth-frame_radius,0];
   body_finger_end_connection_point_pinky = finger_end_connection_point_pinky + [0,-2*connector_depth-frame_radius,0];
 
+  gnd_connector_coords = 0.5*body_front_index_offset+
+    0.5*body_finger_end_connection_point_index+
+    [0,0,frame_radius];
 
   // A fairly arbitrary point in the middle of the body shape:
   _base_mcu_corner = [
@@ -1143,6 +1146,9 @@ module body()
         ])
         translate(point)
           connector_positive();
+
+      translate(gnd_connector_coords)
+        contact_positive();
 
       // Connectors in the front:
       cylinder_from_to(
@@ -1316,6 +1322,10 @@ module body()
       translate(finger_end_connection_point_pinky)
         mirror([0,1,0])
           connector_negative(extra_cutout=true,hex=true);
+
+      translate(gnd_connector_coords)
+        rotate([0,0,180])
+        contact_negative();
 
       // Cavity for lipo_compartment_wdh:
       translate(lipo_compartment_corners[1])
