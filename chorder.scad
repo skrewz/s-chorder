@@ -1084,6 +1084,24 @@ module body()
   body_finger_end_connection_point_index = finger_end_connection_point_index + [0,-2*connector_depth-frame_radius,0];
   body_finger_end_connection_point_pinky = finger_end_connection_point_pinky + [0,-2*connector_depth-frame_radius,0];
 
+  rotation_of_pinkyside_clasp = rotation_of_vector(
+    body_wristaxis_pinkyside_upper_offset
+    -body_front_pinky_offset);
+
+  location_of_pinkyside_clasp=
+    body_wristaxis_pinkyside_upper_offset
+    -rotation_for_euler_rotations(rotation_of_pinkyside_clasp)
+    *[0,0,frame_radius];
+
+  rotation_of_thumbside_clip = rotation_of_vector(
+    body_wristaxis_thumbside_lower_offset
+    -body_front_thumb_offset);
+
+  location_of_thumbside_clip=
+    body_front_thumb_offset
+    +rotation_for_euler_rotations(rotation_of_thumbside_clip)
+    *[0,0,clasp_length+2*frame_radius];
+
   gnd_connector_coords = 0.5*body_front_index_offset+
     0.5*body_finger_end_connection_point_index+
     [0,0,frame_radius];
@@ -1196,17 +1214,24 @@ module body()
 
       // Connectors front to back:
 
+      // this one will be taking the pinky side clasp:
       cylinder_from_to(
         body_front_pinky_offset,
         body_wristaxis_pinkyside_upper_offset,
         frame_radius,frame_radius,
         $fn=30);
+      
 
-      cylinder_from_to(
-        body_front_pinky_offset,
-        body_wristaxis_pinkyside_lower_offset,
-        frame_radius,frame_radius,
-        $fn=30);
+      translate(location_of_pinkyside_clasp)
+        rotate(rotation_of_pinkyside_clasp+[0,-90,0])
+          rotate([0,0,90])
+          translate([-frame_radius,0,-frame_radius])
+            elastic_clasp_positive();
+
+      translate(location_of_thumbside_clip)
+        rotate(rotation_of_thumbside_clip+[0,-90,0])
+          rotate([0,0,90])
+            elastic_clip_positive();
 
       // Connectors in the back
       cylinder_from_to(
@@ -1239,11 +1264,6 @@ module body()
       cylinder_from_to(
         body_front_pinky_offset,
         body_mcu_box_corners[0],
-        frame_radius,frame_radius,
-        $fn=30);
-      cylinder_from_to(
-        body_wristaxis_pinkyside_upper_offset,
-        body_mcu_box_corners[1],
         frame_radius,frame_radius,
         $fn=30);
       cylinder_from_to(
@@ -1302,6 +1322,7 @@ module body()
         }
       }
 
+      // This will have an elastic clip attached to it:
       cylinder_from_to(
         body_front_thumb_offset,
         body_wristaxis_thumbside_lower_offset,
@@ -1342,6 +1363,17 @@ module body()
       translate(gnd_connector_coords)
         rotate([0,0,180])
         contact_negative();
+
+      translate(location_of_pinkyside_clasp)
+        rotate(rotation_of_pinkyside_clasp+[0,-90,0])
+          rotate([0,0,90])
+          translate([-frame_radius,0,-frame_radius])
+            elastic_clasp_negative();
+
+      translate(location_of_thumbside_clip)
+        rotate(rotation_of_thumbside_clip+[0,-90,0])
+          rotate([0,0,90])
+            elastic_clip_negative();
 
       // Cavity for lipo_compartment_wdh:
       translate(lipo_compartment_corners[1])
