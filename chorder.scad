@@ -186,6 +186,26 @@ function coord_for(startvec,angle,segment,radius) =
     z_coord_for(startvec,angle,segment,radius)
   ];
 
+// Returns a euler rotation 3-tuple that can be used to rotate something in the
+// direction of the vector given:
+function rotation_of_vector(v) =
+  // {{{
+  // Due to OpenSCAD function syntax, the below cannot have interim variables.
+  // This was a previous calculation, for reference:
+  //
+  // rotation_upwards = atan(v[2])/sqrt(pow(v[0],2)+pow(v[1],2)));
+  // tangent = (v[1])/(v[0]);
+  // rotation_in_plane = atan(tangent) + (0 > (v[0]) ? 180 : 0);
+  [
+    0,
+    90-atan((v[2])/sqrt(pow(v[0],2)+pow(v[1],2))),
+    // possible corner case: what about _minus_ infinity?
+    (is_num(atan(v[1]/v[0])) ? atan(v[1]/v[0]) + (0 > (v[0]) ? 180 : 0) : 90)
+  ];
+  // }}}
+
+// Applies euler rotation 3-tuple rotations by way of matrix multiplication.
+// This function's output is multiplied onto a vector of [0,0,length].
 function rotation_for_euler_rotations(a) =
     [[cos(a[2]),-sin(a[2]),0],[sin(a[2]),cos(a[2]),0],[0,0,1]]
     * [[cos(a[1]),0,sin(a[1])],[0,1,0],[-sin(a[1]),0,cos(a[1])]]
@@ -360,14 +380,10 @@ module cylinder_from_to (origin,dest,radius1,radius2)
     pow(origin[2]-dest[2],2)
   );
 
-  rotation_upwards = atan((dest[2]-origin[2])/sqrt(pow(dest[0]-origin[0],2)+pow(dest[1]-origin[1],2)));
+  rot = rotation_of_vector(dest-origin);
 
-  tangent = (dest[1]-origin[1])/(dest[0]-origin[0]);
-  rotation_in_plane = atan(tangent) + (0 > (dest[0]-origin[0]) ? 180 : 0);
   translate(origin)
-    rotate([0,0,is_num(rotation_in_plane) ? rotation_in_plane : 90])
-    rotate([0,-rotation_upwards,0])
-    rotate([0,90,0])
+    rotate(rot)
       cylinder(r1=radius1,r2=radius2,h=length);
 } // }}}
 
