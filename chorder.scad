@@ -1086,7 +1086,7 @@ module body()
 
   rotation_of_pinkyside_clasp = rotation_of_vector(
     body_wristaxis_pinkyside_upper_offset
-    -body_front_pinky_offset);
+    -body_front_pinky_offset) + [90,0,0];
 
   location_of_pinkyside_clasp=
     body_wristaxis_pinkyside_upper_offset
@@ -1225,7 +1225,7 @@ module body()
       translate(location_of_pinkyside_clasp)
         rotate(rotation_of_pinkyside_clasp+[0,-90,0])
           rotate([0,0,90])
-          translate([-frame_radius,0,-frame_radius])
+          translate([-frame_radius,frame_radius,0])
             elastic_clasp_positive();
 
       translate(location_of_thumbside_clip)
@@ -1367,7 +1367,7 @@ module body()
       translate(location_of_pinkyside_clasp)
         rotate(rotation_of_pinkyside_clasp+[0,-90,0])
           rotate([0,0,90])
-          translate([-frame_radius,0,-frame_radius])
+          translate([-frame_radius,frame_radius,0])
             elastic_clasp_negative();
 
       translate(location_of_thumbside_clip)
