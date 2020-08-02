@@ -742,20 +742,33 @@ module contact_positive ()
 // A test object that can be used to establish certain calibration parameters.
 module test_object ()
 { // {{{
-  union ()
+  difference()
   {
-    translate([20,20,10])
+    union ()
     {
-      contact_positive();
-    }
-    difference()
-    {
-      cube([40,40,10]);
-      translate([20,20,10])
+      cube([20,20,10]);
+      translate([20-5,20-5,10])
       {
+        contact_positive();
+      }
+      translate([0,0,5])
+        rotate([0,-90,0])
+        {
+          rotate([0,0,180])
+          contact_positive();
+        }
+    }
+    
+    translate([20-5,20-5,10])
+    {
+      contact_negative();
+    }
+    translate([0,0,5])
+      rotate([0,-90,0])
+      {
+        rotate([0,0,180])
         contact_negative();
       }
-    }
   }
 } // }}}
 
@@ -1538,6 +1551,6 @@ body();
 wrist_handle();
 
 translate([-60,-100,-40])
-test_object();
+!test_object();
 
 % hand_model();
