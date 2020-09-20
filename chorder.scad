@@ -113,7 +113,7 @@ elastic_band_thickness = 1;
 elastic_band_clearing_w = 22;
 elastic_band_wall_w = 3;
 
-button_hole_overdimension_factor = 1.1;
+button_hole_overdimension_factor = 1.15;
 
 /*****************************************************************************/
 /* Less-likely calibration properties                                        */
@@ -681,42 +681,51 @@ module contact_positive ()
 module contact_negative_buttonbased ()
 { // {{{
   fact = button_hole_overdimension_factor;
+
+  // clearance for spikes
+  translate([0,-6/2,-10-(2+1-contact_clearance)])
+    for (yoff=[0,6-1])
+      translate([0,yoff+1/2,-4])
+        cylinder(r=1.5,h=10+(2+1-contact_clearance),$fn=20);
+
   difference()
   {
-    translate([-(fact*6)/2,-(fact*6)/2,-15])
-      cube([fact*6,fact*6,15+2+1]);
+    translate([-(fact*6)/2,-(fact*6)/2,-15-(2+1-contact_clearance)])
+      cube([fact*6,fact*6,15+2+(2+1-contact_clearance)+1]);
 
-    translate([-(fact*6)/2,-(fact*6)/2,-4-2])
-    translate([0,((fact*6)-2)/2,0])
-      cube([fact*6,2,2]);
+
+    translate([-(fact*6)/2,-(fact*6)/2,-4-(2+1-contact_clearance)-3])
+      translate([0,((fact*6)-1)/2,0])
+      cube([fact*6,1,3]);
   }
 } // }}}
 
 module contact_positive_buttonbased ()
 { // {{{
-  translate([-6/2,-6/2,-10])
+  translate([-6/2,-6/2,-10-(2+1-contact_clearance)])
   {
     minkowski()
     {
-      cube([6,6,10]);
-      cylinder(r=1.5,h=0.001,$fn=20);
+      cube([6,6,10+(2+1-contact_clearance)]);
+      cylinder(r=2,h=0.001,$fn=20);
     }
   }
 
   // visualisation
   % union()
   {
-    translate([-6/2,-6/2,-4])
+    translate([-6/2,-6/2,-4-(2+1-contact_clearance)])
       color("#888888")
       cube([6,6,4]);
 
-    translate([0,-6/2,-4])
+    // spikes
+    translate([0,-6/2,-4-(2+1-contact_clearance)])
       for (yoff=[0,6-1])
         translate([-1/2,yoff,-4])
           color("#eeeeee")
           cube([1,1,4]);
 
-    translate([-6/2,-6/2,0])
+    translate([-6/2,-6/2,-(2+1-contact_clearance)])
       color("#222222")
       {
         difference()
@@ -728,8 +737,9 @@ module contact_positive_buttonbased ()
         }
       }
 
-    color("red")
-      cylinder(r=1.5,h=3,$fn=10);
+    translate([0,0,-(2+1-contact_clearance)])
+      color("red")
+        cylinder(r=1.5,h=3,$fn=10);
   }
 } // }}}
 
@@ -812,10 +822,15 @@ module test_object ()
   {
     union ()
     {
-      cube([20,20,10]);
-      translate([20-5,20-5,10])
+      cube([10,30,10]);
+      translate([10-5,20-5,10])
       {
         contact_positive();
+      }
+      translate([10-5,30-5,10])
+      {
+        rotate([0,0,90])
+          contact_positive();
       }
       translate([0,0,5])
         rotate([0,-90,0])
@@ -825,9 +840,14 @@ module test_object ()
         }
     }
     
-    translate([20-5,20-5,10])
+    translate([10-5,20-5,10])
     {
       contact_negative();
+    }
+    translate([10-5,30-5,10])
+    {
+      rotate([0,0,90])
+        contact_negative();
     }
     translate([0,0,5])
       rotate([0,-90,0])
@@ -1056,7 +1076,8 @@ module finger_end()
           rotate(rotations[3])
           translate([0,0,-radius-4])
           {
-            contact_positive();
+            rotate([0,0,90])
+              contact_positive();
           }
 
       }
@@ -1608,7 +1629,7 @@ body();
 wrist_handle();
 
 translate([-60,-100,-40])
-test_object();
+  test_object();
 
 % hand_model();
 // vim: fml=1 fdm=marker
