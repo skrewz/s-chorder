@@ -5,6 +5,7 @@
 //       known point (connection point?)
 
 print_which_part = "composition";
+// Options are: "composition", "finger_end", "body", "wrist_handle" and "test_object"
 
 /*****************************************************************************/
 /* Likely calibration properties                                             */
@@ -1646,15 +1647,25 @@ if ("finger_end" == print_which_part) {
   // stand at an angle mostly suitable for printing:
   rotate([120,-10,0])
     finger_end();
+} else if ("body" == print_which_part) {
+  // Meh: offset below the xy plane
+  rotate([90,0,0])
+    body();
+} else if ("wrist_handle" == print_which_part) {
+  // Meh: offset above the xy plane
+  rotate([-90,0,0])
+    wrist_handle();
+} else if ("test_object" == print_which_part) {
+  rotate([180,0,0])
+    test_object();
 } else if ("composition" == print_which_part) {
   finger_end();
-
   body();
   wrist_handle();
 
+  % hand_model();
+
   translate([-60,-100,-40])
     test_object();
-
-  % hand_model();
 }
 // vim: fml=1 fdm=marker
