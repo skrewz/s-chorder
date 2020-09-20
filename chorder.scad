@@ -24,7 +24,7 @@
 // E.g. to measure segment 0 on pinky, you'd clench your fist and look at it
 // from below. That way, joint0 and joint1 on pinky will be at an angle of at
 // least 90 degrees. Then you put a caliper on those two pinky joints.
-// 
+//
 // (It gets more finger-yoga-like to do this with other joints. You'll probably
 // have to use another hand to hold the joint in a slightly overstretched
 // position. Or take a guess.)
@@ -330,7 +330,7 @@ thumb_rotation = [ for (i=[0:2])
 // }}}
 
 // Calculating where the thumb connection point is {{{
-thumb_connection_point = 
+thumb_connection_point =
 thumb_coords[1]+
   -thumb_connection_point_translation_distance*rotation_for_euler_rotations(thumb_rotation[1])*[0,0,1];
 // }}}
@@ -339,18 +339,18 @@ thumb_coords[1]+
 // Warning: inexact science at play. Technically, these points could be derived
 // from observed angles between e.g. index and middle joint0's.
 
-finger_end_connection_point_thumb = 
+finger_end_connection_point_thumb =
   0.2*index_joint0_offset+
   0.8*thumb_connection_point+
   [0,-frame_radius,0];
 
-finger_end_connection_point_index = 
-  0.6*index_joint0_offset + 
+finger_end_connection_point_index =
+  0.6*index_joint0_offset +
   0.4*middle_joint0_offset+
   [0,-3*connector_depth,-10-frame_radius];
 
-finger_end_connection_point_pinky = 
-  0.3*ring_joint0_offset + 
+finger_end_connection_point_pinky =
+  0.3*ring_joint0_offset +
   0.7*pinky_joint0_offset+
   [0,-4*connector_depth,-8-frame_radius];
 
@@ -363,13 +363,13 @@ body_wristaxis_pinkyside_upper_offset = wristaxis_pinkyside_upper_offset+[0,0,-w
 body_wristaxis_thumbside_lower_offset = wristaxis_thumbside_upper_offset+[0,0,-wristaxis_radius-frame_radius-wrist_handle_connection_frame_height];
 body_wristaxis_pinkyside_lower_offset = wristaxis_pinkyside_upper_offset+[0,0,-wristaxis_radius-frame_radius-wrist_handle_connection_frame_height];
 
-wrist_handle_connection_point_thumb_upper = 
+wrist_handle_connection_point_thumb_upper =
   body_wristaxis_thumbside_upper_offset+[0,-frame_radius,0];
-wrist_handle_connection_point_thumb_lower = 
+wrist_handle_connection_point_thumb_lower =
   body_wristaxis_thumbside_lower_offset+[0,-frame_radius,0];
-wrist_handle_connection_point_pinky_upper = 
+wrist_handle_connection_point_pinky_upper =
   body_wristaxis_pinkyside_upper_offset+[0,-frame_radius,0];
-wrist_handle_connection_point_pinky_lower = 
+wrist_handle_connection_point_pinky_lower =
   body_wristaxis_pinkyside_lower_offset+[0,-frame_radius,0];
 
 
@@ -600,34 +600,34 @@ module connector_access_negative(hex=false)
 
 module showcase_rotation_for_euler_rotations()
 { // {{{
- 
+
   angles = [[119,-133,-94], [-129,112,-142], [104,-44,-139], [70,99,-85],
   [-146,171,64], [113,55,-26], [-39,-169,-58], [-8,82,39], [86,-110,-33],
   [168,119,67], [-9,58,114], [69,110,39], [99,26,175], [140,-84,95],
   [-132,-58,78], [112,-125,-47], [-94,8,-35], [20,173,-141], [-121,79,-71],
   [19,59,-131]];
-              
-             
+
+
   for(angle=angles)
-  {           
+  {
     amplitude = 10;
     dest = amplitude*rotation_for_euler_rotations(angle)*[0,0,1];
-              
+
     translate(dest)
       color("green")
-        {      
+        {
           translate([0,0,0.2*amplitude])
             cylinder(r=0.1,h=0.8*amplitude,$fn=10);
           cylinder(r1=0.01,r2=0.4,h=0.2*amplitude,$fn=10);
-        }       
-                
+        }
+
     rotate(angle)
-      color("blue")                                                       
-      {                                                                  
-        cylinder(r=0.1,h=0.8*amplitude,$fn=10);                         
+      color("blue")
+      {
+        cylinder(r=0.1,h=0.8*amplitude,$fn=10);
         translate([0,0,0.8*amplitude])
           cylinder(r1=0.4,r2=0.01,h=0.2*amplitude,$fn=10);
-      }                                                
+      }
   }
 } // }}}
 
@@ -842,7 +842,7 @@ module test_object ()
           contact_positive();
         }
     }
-    
+
     translate([10-5,20-5,10])
     {
       contact_negative();
@@ -925,7 +925,7 @@ module hand_model ()
   for (coord=thumb_coords)
     translate(coord)
       sphere(r=thumb_radius);
-    
+
   cylinder_from_to(thumb_coords[0],thumb_coords[1],thumb_radius,thumb_radius);
   cylinder_from_to(thumb_coords[1],thumb_coords[2],thumb_radius,thumb_radius);
   /*
@@ -1057,7 +1057,7 @@ module finger_end()
               coords[3]+[0,-10,0],
               frame_radius,frame_radius,$fn=40);
 
-      
+
             cylinder_from_to(
               joint0_offset+[0,0,-radius-frame_radius],
                 coords[3]+rotation_for_euler_rotations(rotations[3])*[0,0,-20],
@@ -1148,7 +1148,7 @@ module finger_end()
         ring_joint0_offset+[0,0,-ring_radius-frame_radius],
         pinky_joint0_offset+[0,0,-pinky_radius-frame_radius],
         frame_radius,frame_radius,$fn=30);
- 
+
       contact_outrigger(pinky_joint0_offset,pinky_radius,pinky_coords,pinky_rotation);
       contact_outrigger(ring_joint0_offset,ring_radius,ring_coords,ring_rotation);
       contact_outrigger(middle_joint0_offset,middle_radius,middle_coords,middle_rotation);
@@ -1221,7 +1221,7 @@ module body()
     _base_mcu_corner + [-0.5*mcu_clearance_wdh[0],0.5*mcu_clearance_wdh[1],0],
   ];
 
-  
+
   _lipo_base = body_wristaxis_thumbside_lower_offset+[frame_radius,0,0];
   lipo_compartment_corners = [
      _lipo_base+[0,0,lipo_compartment_wdh[0]],
@@ -1327,7 +1327,7 @@ module body()
         $fn=30);
 
       if (include_gnd_connector)
-        translate(gnd_connector_coords)     
+        translate(gnd_connector_coords)
           contact_positive_springbased();
 
       translate(location_of_pinkyside_clasp)
@@ -1513,7 +1513,7 @@ module body()
 
       translate(body_mcu_box_corners[2])
         mcu_clearance_box();
-      
+
     }
   }
 
