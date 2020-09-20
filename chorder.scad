@@ -115,6 +115,9 @@ elastic_band_wall_w = 3;
 
 button_hole_overdimension_factor = 1.15;
 
+// Do we want a GND connector on the body()?
+include_gnd_connector = false;
+
 /*****************************************************************************/
 /* Less-likely calibration properties                                        */
 /*****************************************************************************/
@@ -1054,9 +1057,10 @@ module finger_end()
               coords[3]+[0,-10,0],
               frame_radius,frame_radius,$fn=40);
 
+      
             cylinder_from_to(
               joint0_offset+[0,0,-radius-frame_radius],
-                coords[3]+rotation_for_euler_rotations(rotations[3])*[0,0,-radius-contact_z_depress-m3_nut_clear_height-m3_nut_holder_wall_w],
+                coords[3]+rotation_for_euler_rotations(rotations[3])*[0,0,-20],
               frame_radius,frame_radius,$fn=40);
           }
 
@@ -1230,6 +1234,12 @@ module body()
      /* _lipo_base+[lipo_compartment_wdh[1],0,0], */
   ];
 
+  // If we have a GND connector:
+  gnd_connector_coords = 0.5*body_front_index_offset+
+    0.5*body_finger_end_connection_point_index+
+    [0,0,frame_radius];
+
+
   difference()
   {
     union()
@@ -1315,7 +1325,10 @@ module body()
         body_wristaxis_pinkyside_upper_offset,
         frame_radius,frame_radius,
         $fn=30);
-      
+
+      if (include_gnd_connector)
+        translate(gnd_connector_coords)     
+          contact_positive_springbased();
 
       translate(location_of_pinkyside_clasp)
         rotate(rotation_of_pinkyside_clasp+[0,-90,0])
@@ -1465,6 +1478,11 @@ module body()
         rotate(rotation_of_thumbside_clip+[0,-90,0])
           rotate([0,rotational_offset_thumbside_clip,90])
             elastic_clip_negative();
+
+      if (include_gnd_connector)
+        translate(gnd_connector_coords)
+          rotate([0,0,180])
+            contact_negative_springbased();
 
       // Cavity for lipo_compartment_wdh:
       translate(lipo_compartment_corners[1])
