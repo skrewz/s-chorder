@@ -113,6 +113,8 @@ elastic_band_thickness = 1;
 elastic_band_clearing_w = 22;
 elastic_band_wall_w = 3;
 
+button_hole_overdimension_factor = 1.1;
+
 /*****************************************************************************/
 /* Less-likely calibration properties                                        */
 /*****************************************************************************/
@@ -669,6 +671,70 @@ module compass ()
 
 module contact_negative ()
 { // {{{
+  contact_negative_buttonbased();
+} // }}}
+module contact_positive ()
+{ // {{{
+  contact_positive_buttonbased();
+} // }}}
+
+module contact_negative_buttonbased ()
+{ // {{{
+  fact = button_hole_overdimension_factor;
+  difference()
+  {
+    translate([-(fact*6)/2,-(fact*6)/2,-15])
+      cube([fact*6,fact*6,15+2+1]);
+
+    translate([-(fact*6)/2,-(fact*6)/2,-4-2])
+    translate([0,((fact*6)-2)/2,0])
+      cube([fact*6,2,2]);
+  }
+} // }}}
+
+module contact_positive_buttonbased ()
+{ // {{{
+  translate([-6/2,-6/2,-10])
+  {
+    minkowski()
+    {
+      cube([6,6,10]);
+      cylinder(r=1.5,h=0.001,$fn=20);
+    }
+  }
+
+  // visualisation
+  % union()
+  {
+    translate([-6/2,-6/2,-4])
+      color("#888888")
+      cube([6,6,4]);
+
+    translate([0,-6/2,-4])
+      for (yoff=[0,6-1])
+        translate([-1/2,yoff,-4])
+          color("#eeeeee")
+          cube([1,1,4]);
+
+    translate([-6/2,-6/2,0])
+      color("#222222")
+      {
+        difference()
+        {
+          cube([6,6,2]);
+          for(p=[[0.5,0.5],[0.5,5.5],[5.5,5.5],[5.5,0.5]])
+            translate([p[0],p[1],-0.03])
+              cylinder(r=1,h=3,$fn=10);
+        }
+      }
+
+    color("red")
+      cylinder(r=1.5,h=3,$fn=10);
+  }
+} // }}}
+
+module contact_negative_springbased ()
+{ // {{{
   translate([0,0,-spring_height-m3_nut_holder_wall_w-m3_nut_clear_height])
   {
     hull()
@@ -694,7 +760,7 @@ module contact_negative ()
 
 } // }}}
 
-module contact_positive ()
+module contact_positive_springbased ()
 { // {{{
 
   // a cylinder to hold bolt and spring:
@@ -1117,10 +1183,6 @@ module body()
     +rotation_for_euler_rotations(rotation_of_thumbside_clip)
     *[0,0,-2*frame_radius];
 
-  gnd_connector_coords = 0.5*body_front_index_offset+
-    0.5*body_finger_end_connection_point_index+
-    [0,0,frame_radius];
-
   // A fairly arbitrary point in the middle of the body shape:
   _base_mcu_corner = [
     0.4*index_joint0_offset[0]+0.6*ring_joint0_offset[0],
@@ -1195,9 +1257,6 @@ module body()
         ])
         translate(point)
           connector_positive();
-
-      translate(gnd_connector_coords)
-        contact_positive();
 
       // Connectors in the front:
       cylinder_from_to(
@@ -1374,10 +1433,6 @@ module body()
       translate(finger_end_connection_point_pinky)
         mirror([0,1,0])
           connector_negative(extra_cutout=true,hex=true);
-
-      translate(gnd_connector_coords)
-        rotate([0,0,180])
-        contact_negative();
 
       translate(location_of_pinkyside_clasp)
         rotate(rotation_of_pinkyside_clasp+[0,-90,0])
@@ -1556,3 +1611,4 @@ translate([-60,-100,-40])
 test_object();
 
 % hand_model();
+// vim: fml=1 fdm=marker
