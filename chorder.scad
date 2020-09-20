@@ -4,6 +4,7 @@
 // TODO: model should echo() absolute positions of buttons, relative to some
 //       known point (connection point?)
 
+print_which_part = "composition";
 
 /*****************************************************************************/
 /* Likely calibration properties                                             */
@@ -1641,13 +1642,19 @@ module wrist_handle()
 
 } // }}}
 
-finger_end();
+if ("finger_end" == print_which_part) {
+  // stand at an angle mostly suitable for printing:
+  rotate([120,-10,0])
+    finger_end();
+} else if ("composition" == print_which_part) {
+  finger_end();
 
-body();
-wrist_handle();
+  body();
+  wrist_handle();
 
-translate([-60,-100,-40])
-  test_object();
+  translate([-60,-100,-40])
+    test_object();
 
-% hand_model();
+  % hand_model();
+}
 // vim: fml=1 fdm=marker
