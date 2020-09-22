@@ -117,6 +117,16 @@ elastic_band_wall_w = 3;
 
 button_hole_overdimension_factor = 1.15;
 
+// how much to depress (in the z direction) contact_{positive,negative} given
+// that the contact point is at z=0.
+contact_z_depress = 15;
+// how much depression of spring before electrical contact is made:
+contact_clearance = 4;
+// 0.3mm wire diameter 10 mm high 6mm outer diameter springs:
+// https://www.aliexpress.com/item/33050149067.html
+spring_radius = 3;
+spring_height = 10;
+
 // Do we want a GND connector on the body()?
 include_gnd_connector = false;
 
@@ -144,15 +154,6 @@ m3_nut_holder_wall_w = 1;
 
 connector_depth = 2;
 
-// how much to depress (in the z direction) contact_{positive,negative} given
-// that the contact point is at z=0.
-contact_z_depress = 15;
-// how much depression of spring before electrical contact is made:
-contact_clearance = 2;
-// 0.3mm wire diameter 10 mm high 6mm outer diameter springs:
-// https://www.aliexpress.com/item/33050149067.html
-spring_radius = 3;
-spring_height = 10;
 
 // how far down (perspective of joint1 on the thumb) the connection point is placed:
 thumb_connection_point_translation_distance = 2*thumb_radius;
