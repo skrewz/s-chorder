@@ -1060,19 +1060,10 @@ module finger_end()
     {
       union()
       {
-          hull()
-          {
-            cylinder_from_to(
-              joint0_offset+[0,0,-radius-frame_radius],
-              coords[3]+[0,-10,0],
-              frame_radius,frame_radius,$fn=40);
-
-
-            cylinder_from_to(
-              joint0_offset+[0,0,-radius-frame_radius],
-                coords[3]+rotation_for_euler_rotations(rotations[3])*[0,0,-20],
-              frame_radius,frame_radius,$fn=40);
-          }
+        cylinder_from_to(
+          joint0_offset+[0,0,-radius-frame_radius],
+            coords[3]+rotation_for_euler_rotations(rotations[3])*[0,0,-15],
+          frame_radius,frame_radius,$fn=40);
 
         translate(coords[3])
           rotate(rotations[3])
