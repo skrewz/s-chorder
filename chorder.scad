@@ -63,12 +63,12 @@ wristaxis_pinkyside_upper_offset  = [  97, -80,-15];
 wristaxis_radius = 20;
 
 // four fingers: rotation around y axis:
-pinky_joint0_rotation  =  [14,0];
-ring_joint0_rotation   =   [9,0];
-middle_joint0_rotation =  [-3,0];
-index_joint0_rotation  = [-10,0];
+pinky_joint0_rotation  =  [ 14, -30];
+ring_joint0_rotation   = [   9,   0];
+middle_joint0_rotation = [  -3,   0];
+index_joint0_rotation  = [ -10,   0];
 // thumb: rotation around x axis:
-thumb_joint0_rotation  = [-110,0];
+thumb_joint0_rotation  = [-110, -90];
 
 // LiPo battery measurements:
 
@@ -238,7 +238,7 @@ pinky_rotation = [ for (i=[0:3])
   [
     sum([for (j=[0:i]) pinky_angles[j] ? -pinky_angles[j] : 0]),
     pinky_joint0_rotation[0],
-    -30, // always 0 when rotating in y and x axes
+    pinky_joint0_rotation[1],
   ],
 ];
 
@@ -259,7 +259,7 @@ ring_rotation = [ for (i=[0:3])
   [
     sum([for (j=[0:i]) ring_angles[j] ? -ring_angles[j] : 0]),
     ring_joint0_rotation[0],
-    0, // always 0 when rotating in y and x axes
+    ring_joint0_rotation[1],
   ],
 ];
 
@@ -280,7 +280,7 @@ middle_rotation = [ for (i=[0:3])
   [
     sum([for (j=[0:i]) middle_angles[j] ? -middle_angles[j] : 0]),
     middle_joint0_rotation[0],
-    0, // always 0 when rotating in y and x axes
+    middle_joint0_rotation[1],
   ],
 ];
 
@@ -301,7 +301,7 @@ index_rotation = [ for (i=[0:3])
   [
     sum([for (j=[0:i]) index_angles[j] ? -index_angles[j] : 0]),
     index_joint0_rotation[0],
-    0, // always 0 when rotating in y and x axes
+    index_joint0_rotation[1],
   ],
 ];
 
@@ -324,7 +324,7 @@ thumb_rotation = [ for (i=[0:2])
     // at joint2 for a thumb:
     90+sum([for (j=[0:i]) thumb_angles[j] ? -thumb_angles[j] : 0]), // always 0 when rotating in y and x axes
     thumb_joint0_rotation[0],
-    -90,
+    thumb_joint0_rotation[1],
   ],
 ];
 
