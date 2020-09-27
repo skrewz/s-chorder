@@ -63,12 +63,12 @@ wristaxis_pinkyside_upper_offset  = [  97, -80,-15];
 wristaxis_radius = 20;
 
 // four fingers: rotation around y axis:
-pinky_joint0_rotation  =  14;
-ring_joint0_rotation   =   9;
-middle_joint0_rotation =  -3;
-index_joint0_rotation  = -10;
+pinky_joint0_rotation  =  [14,0];
+ring_joint0_rotation   =   [9,0];
+middle_joint0_rotation =  [-3,0];
+index_joint0_rotation  = [-10,0];
 // thumb: rotation around x axis:
-thumb_joint0_rotation  = -110;
+thumb_joint0_rotation  = [-110,0];
 
 // LiPo battery measurements:
 
@@ -181,10 +181,10 @@ assert(sum([ 4, 1, -1]) == 4);
 function rotate_coord(coord,joint0_rotation,relative_to_joint0_offset) =
   [
     // have hypotenuse and angle, want opposite:
-    relative_to_joint0_offset[0]-sin(joint0_rotation)*(relative_to_joint0_offset[2]-coord[2]),
+    relative_to_joint0_offset[0]-sin(joint0_rotation[0])*(relative_to_joint0_offset[2]-coord[2]),
     coord[1], // remains the same when rotating around y axis
     // have hypotenuse and angle, want adjacent:
-    relative_to_joint0_offset[2]-cos(joint0_rotation)*(relative_to_joint0_offset[2]-coord[2])
+    relative_to_joint0_offset[2]-cos(joint0_rotation[0])*(relative_to_joint0_offset[2]-coord[2])
   ];
 
 function coord_for(startvec,angle,segment,radius) =
@@ -237,7 +237,7 @@ pinky_coords = [
 pinky_rotation = [ for (i=[0:3])
   [
     sum([for (j=[0:i]) pinky_angles[j] ? -pinky_angles[j] : 0]),
-    pinky_joint0_rotation,
+    pinky_joint0_rotation[0],
     -30, // always 0 when rotating in y and x axes
   ],
 ];
@@ -258,7 +258,7 @@ ring_coords = [
 ring_rotation = [ for (i=[0:3])
   [
     sum([for (j=[0:i]) ring_angles[j] ? -ring_angles[j] : 0]),
-    ring_joint0_rotation,
+    ring_joint0_rotation[0],
     0, // always 0 when rotating in y and x axes
   ],
 ];
@@ -279,7 +279,7 @@ middle_coords = [
 middle_rotation = [ for (i=[0:3])
   [
     sum([for (j=[0:i]) middle_angles[j] ? -middle_angles[j] : 0]),
-    middle_joint0_rotation,
+    middle_joint0_rotation[0],
     0, // always 0 when rotating in y and x axes
   ],
 ];
@@ -300,7 +300,7 @@ index_coords = [
 index_rotation = [ for (i=[0:3])
   [
     sum([for (j=[0:i]) index_angles[j] ? -index_angles[j] : 0]),
-    index_joint0_rotation,
+    index_joint0_rotation[0],
     0, // always 0 when rotating in y and x axes
   ],
 ];
@@ -323,7 +323,7 @@ thumb_rotation = [ for (i=[0:2])
     // Ternary expression necessary to handle that there is no angle available
     // at joint2 for a thumb:
     90+sum([for (j=[0:i]) thumb_angles[j] ? -thumb_angles[j] : 0]), // always 0 when rotating in y and x axes
-    thumb_joint0_rotation,
+    thumb_joint0_rotation[0],
     -90,
   ],
 ];
@@ -905,7 +905,7 @@ module hand_model ()
 
     translate(joint0_offset)
     {
-      rotate([0,joint0_rotation,0])
+      rotate([0,joint0_rotation[0],0])
       {
         rotate([-angles[0]-90,0,0])
         {
@@ -970,12 +970,12 @@ module finger_end()
     {
       cylinder_from_to(
         thumb_connection_point,
-        thumb_connection_point+rotation_for_euler_rotations([thumb_joint0_rotation,0,0])*[0,0,scale_for_thumb_contact_offset*thumb_segment_lengths[1]],
+        thumb_connection_point+rotation_for_euler_rotations([thumb_joint0_rotation[0],0,0])*[0,0,scale_for_thumb_contact_offset*thumb_segment_lengths[1]],
         frame_radius,frame_radius,$fn=30);
 
       cylinder_from_to(
         thumb_connection_point,
-        thumb_connection_point+rotation_for_euler_rotations([thumb_joint0_rotation,0,0])*[0,0,scale_for_thumb_contact_offset*thumb_segment_lengths[1]],
+        thumb_connection_point+rotation_for_euler_rotations([thumb_joint0_rotation[0],0,0])*[0,0,scale_for_thumb_contact_offset*thumb_segment_lengths[1]],
         frame_radius,frame_radius,$fn=30);
 
       translate(thumb_coords[1])
