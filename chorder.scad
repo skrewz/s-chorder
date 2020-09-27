@@ -45,10 +45,10 @@ thumb_radius  = 11.0;
 
 // Angles at joint 0, joint 1 and joint 2, for a "comfortably glove-shaped" hand:
 pinky_angles  = [20,37,33];
-ring_angles   = [20,60,15];
+ring_angles   = [20,60,20];
 middle_angles = [15,60,10];
 index_angles  = [20,30,10];
-thumb_angles  = [0,00];
+thumb_angles  = [0,0];
 
 // Almost-guesstimate: for a fingers-stretched hand, where are the joint 0's?
 //
@@ -63,7 +63,7 @@ wristaxis_pinkyside_upper_offset  = [  97, -80,-15];
 wristaxis_radius = 20;
 
 // four fingers: rotation around y axis:
-pinky_joint0_rotation  =  17;
+pinky_joint0_rotation  =  14;
 ring_joint0_rotation   =   9;
 middle_joint0_rotation =  -3;
 index_joint0_rotation  = -10;
@@ -238,7 +238,7 @@ pinky_rotation = [ for (i=[0:3])
   [
     sum([for (j=[0:i]) pinky_angles[j] ? -pinky_angles[j] : 0]),
     pinky_joint0_rotation,
-    0, // always 0 when rotating in y and x axes
+    -30, // always 0 when rotating in y and x axes
   ],
 ];
 
@@ -992,7 +992,14 @@ module finger_end()
             rotate_extrude(angle=180,$fn=60)
             {
               translate([thumb_radius+contact_clearance,-5,0])
-              square([2*contact_clearance,10]);
+              square([max(contact_clearance,4),10]);
+            }
+            rotate([-90,-90,0])
+            rotate([0,0,45])
+            rotate_extrude(angle=90,$fn=60)
+            {
+              translate([thumb_radius,-5,0])
+              square([max(contact_clearance,4),10]);
             }
           }
 
@@ -1066,18 +1073,6 @@ module finger_end()
                 coords[3]+rotation_for_euler_rotations(rotations[3])*[0,0,-20],
               frame_radius,frame_radius,$fn=40);
           }
-
-          translate(coords[3])
-            rotate(rotations[3])
-            rotate([90,0,0])
-            translate([0,-6,-1*radius])
-            {
-              minkowski()
-              {
-                sphere(r=1,$fn=20);
-                cylinder(r=1+radius,h=2*radius,$fn=40);
-              }
-            }
 
         translate(coords[3])
           rotate(rotations[3])
