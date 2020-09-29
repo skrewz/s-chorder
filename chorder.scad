@@ -64,7 +64,7 @@ wristaxis_radius = 20;
 
 // four fingers: rotation around y axis:
 pinky_joint0_rotation  =  [ 14, -30];
-ring_joint0_rotation   = [   9,   0];
+ring_joint0_rotation   = [   9, -10];
 middle_joint0_rotation = [  -3,   0];
 index_joint0_rotation  = [ -10,   0];
 // thumb: rotation around x axis:
@@ -964,6 +964,23 @@ module finger_end()
   // over with it. That places it in a weird spot though, so...
   scale_for_thumb_contact_offset = 0.65;
 
+  rotational_offset_thumbside_clasp = 00;
+  rotation_of_thumbside_clasp = [0,0,0];
+
+  location_of_thumbside_clasp=
+    index_joint0_offset+[0,0,-index_radius-frame_radius]
+    +rotation_for_euler_rotations(rotation_of_thumbside_clasp)
+    *[0,0,-2*frame_radius];
+
+  _index_arm_ends_at = index_coords[3]+rotation_for_euler_rotations(index_rotation[3])*[0,0,-15];
+  _index_arm_starts_at = index_joint0_offset+[0,0,-index_radius-frame_radius];
+
+  _clasp_support_outrigger_starts_at =
+    0.6*finger_end_connection_point_thumb+
+    0.4*(index_joint0_offset+[0,0,-index_radius-frame_radius])+
+    +[0,frame_radius,0];
+  _clasp_support_outrigger_ends_at = 0.5*_index_arm_ends_at+0.5*_index_arm_starts_at;
+
   module thumb_contact_positive ()
   { // {{{
     union ()
@@ -1138,6 +1155,20 @@ module finger_end()
         pinky_joint0_offset+[0,0,-pinky_radius-frame_radius],
         frame_radius,frame_radius,$fn=30);
 
+
+      cylinder_from_to(
+        _clasp_support_outrigger_starts_at,
+        _clasp_support_outrigger_ends_at,
+        frame_radius,frame_radius,$fn=30);
+
+      // thumbside clasp:
+      translate(_clasp_support_outrigger_starts_at)
+        rotate(rotation_of_vector(_clasp_support_outrigger_ends_at-_clasp_support_outrigger_starts_at))
+        rotate([90,0,0])
+        translate([-frame_radius,0,-frame_radius])
+        rotate([0,rotational_offset_thumbside_clasp,0])
+        elastic_clasp_positive();
+
       contact_outrigger(pinky_joint0_offset,pinky_radius,pinky_coords,pinky_rotation);
       contact_outrigger(ring_joint0_offset,ring_radius,ring_coords,ring_rotation);
       contact_outrigger(middle_joint0_offset,middle_radius,middle_coords,middle_rotation);
@@ -1161,6 +1192,14 @@ module finger_end()
       translate(finger_end_connection_point_pinky)
         connector_negative();
       thumb_contact_negative();
+
+      // thumbside clasp:
+      translate(_clasp_support_outrigger_starts_at)
+        rotate(rotation_of_vector(_clasp_support_outrigger_ends_at-_clasp_support_outrigger_starts_at))
+        rotate([90,0,0])
+        translate([-frame_radius,0,-frame_radius])
+        rotate([0,rotational_offset_thumbside_clasp,0])
+        elastic_clasp_negative();
     }
   }
 
@@ -1177,25 +1216,16 @@ module body()
   body_finger_end_connection_point_index = finger_end_connection_point_index + [0,-2*connector_depth-frame_radius,0];
   body_finger_end_connection_point_pinky = finger_end_connection_point_pinky + [0,-2*connector_depth-frame_radius,0];
 
-  rotational_offset_pinkyside_clasp = 40;
-  rotation_of_pinkyside_clasp = rotation_of_vector(
+  rotational_offset_pinkyside_clip = 40;
+  rotation_of_pinkyside_clip = rotation_of_vector(
     body_wristaxis_pinkyside_upper_offset
     -body_front_pinky_offset) + [0,0,0];
 
-  location_of_pinkyside_clasp=
+  location_of_pinkyside_clip=
     body_wristaxis_pinkyside_upper_offset
-    -rotation_for_euler_rotations(rotation_of_pinkyside_clasp)
+    -rotation_for_euler_rotations(rotation_of_pinkyside_clip)
     *[0,0,frame_radius];
 
-  rotational_offset_thumbside_clip = -20;
-  rotation_of_thumbside_clip = rotation_of_vector(
-    body_wristaxis_thumbside_lower_offset
-    -body_front_thumb_offset);
-
-  location_of_thumbside_clip=
-    body_wristaxis_thumbside_lower_offset
-    +rotation_for_euler_rotations(rotation_of_thumbside_clip)
-    *[0,0,-2*frame_radius];
 
   // A fairly arbitrary point in the middle of the body shape:
   _base_mcu_corner = [
@@ -1319,16 +1349,11 @@ module body()
         translate(gnd_connector_coords)
           contact_positive_springbased();
 
-      translate(location_of_pinkyside_clasp)
-        rotate(rotation_of_pinkyside_clasp+[0,-90,0])
-          rotate([0,-90+rotational_offset_pinkyside_clasp,90])
-          translate([-frame_radius,0,-frame_radius])
-            elastic_clasp_positive();
-
-      translate(location_of_thumbside_clip)
-        rotate(rotation_of_thumbside_clip+[0,-90,0])
-          rotate([0,rotational_offset_thumbside_clip,90])
+      translate(location_of_pinkyside_clip)
+        rotate(rotation_of_pinkyside_clip+[0,-90,0])
+          rotate([0,-180+rotational_offset_pinkyside_clip,90])
             elastic_clip_positive();
+
 
       // Connectors in the back
       cylinder_from_to(
@@ -1457,15 +1482,10 @@ module body()
         mirror([0,1,0])
           connector_negative(extra_cutout=true,hex=true);
 
-      translate(location_of_pinkyside_clasp)
-        rotate(rotation_of_pinkyside_clasp+[0,-90,0])
-          rotate([0,-90+rotational_offset_pinkyside_clasp,90])
-          translate([-frame_radius,0,-frame_radius])
-            elastic_clasp_negative();
-
-      translate(location_of_thumbside_clip)
-        rotate(rotation_of_thumbside_clip+[0,-90,0])
-          rotate([0,rotational_offset_thumbside_clip,90])
+      translate(location_of_pinkyside_clip)
+        rotate(rotation_of_pinkyside_clip+[0,-90,0])
+          rotate([0,-180+rotational_offset_pinkyside_clip,90])
+          mirror([0,0,1])
             elastic_clip_negative();
 
       if (include_gnd_connector)
