@@ -652,25 +652,25 @@ module final_segment (length,radius)
 
 } // }}}
 
-module compass ()
+module compass (length=20)
 { // {{{
   $fn=20;
   % union ()
   {
     color("red")
     {
-      cylinder_from_to([0,0,0],[18,0,0],0.2,0.2);
-      cylinder_from_to([18,0,0],[20,0,0],0.6,0.01);
+      cylinder_from_to([0,0,0],[length-2,0,0],0.2,0.2);
+      cylinder_from_to([length-2,0,0],[length,0,0],0.6,0.01);
     }
     color("green")
     {
-      cylinder_from_to([0,0,0],[0,18,0],0.2,0.2);
-      cylinder_from_to([0,18,0],[0,20,0],0.6,0.01);
+      cylinder_from_to([0,0,0],[0,length-2,0],0.2,0.2);
+      cylinder_from_to([0,length-2,0],[0,length,0],0.6,0.01);
     }
     color("blue")
     {
-      cylinder_from_to([0,0,0],[0,0,18],0.2,0.2);
-      cylinder_from_to([0,0,18],[0,0,20],0.6,0.01);
+      cylinder_from_to([0,0,0],[0,0,length-2],0.2,0.2);
+      cylinder_from_to([0,0,length-2],[0,0,length],0.6,0.01);
     }
   }
 } // }}}
