@@ -85,9 +85,13 @@ Plain        | Thumb  | Fingers | Hint
 ↓            | ◼◻◻    | ◻◻◼◼    |
 ↑            | ◼◻◻    | ◼◼◻◻    |
 →            | ◼◻◻    | ◻◻◼◻    |
+`Home`       | ◼◻◻    | ◼◻◼◼    |
+`End`        | ◼◻◻    | ◼◻◻◼    |
 `Tab`        | ◼◻◻    | ◼◻◼◻    |
 `Left shift` | ◼◻◻    | ◻◻◻◻    |
 `Caps lock`  | ◼◻◻    | ◼◼◼◼    |
+`Page up`    | ◼◻◻    | ◼◼◼◻    |
+`Page down`  | ◼◻◻    | ◻◼◼◼    |
 
 
 ## Common mode-setting/miscellanea chords
