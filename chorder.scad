@@ -1522,6 +1522,7 @@ module body()
       // Illustrate where the MCU sits:
       %
       translate(body_mcu_box_corners[2])
+        rotate(mcu_rotation)
         color([0,0,1,0.2])
         mcu_clearance_box();
     }
