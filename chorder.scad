@@ -1266,15 +1266,15 @@ module body()
   body_finger_end_connection_point_index = finger_end_connection_point_index + [0,-2*connector_depth-frame_radius,0];
   body_finger_end_connection_point_pinky = finger_end_connection_point_pinky + [0,-2*connector_depth-frame_radius,0];
 
-  rotational_offset_pinkyside_clip = 40;
+  rotational_offset_pinkyside_clip = 10;
   rotation_of_pinkyside_clip = rotation_of_vector(
     body_wristaxis_pinkyside_upper_offset
     -body_front_pinky_offset) + [0,0,0];
 
   location_of_pinkyside_clip=
-    body_wristaxis_pinkyside_upper_offset
+    body_finger_end_connection_point_pinky
     -rotation_for_euler_rotations(rotation_of_pinkyside_clip)
-    *[0,0,frame_radius];
+    *[0,0,-clasp_length];
 
 
   // A fairly arbitrary point in the middle of the body shape:
