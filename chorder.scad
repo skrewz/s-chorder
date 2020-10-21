@@ -1295,17 +1295,17 @@ module body()
     rotation_for_euler_rotations(mcu_rotation) * [0,mcu_clearance_wdh[1],0],
   ];
 
+  lipo_rotation = [
+    -40,
+    0,
+    0];
 
   _lipo_base = body_wristaxis_thumbside_lower_offset+[frame_radius,0,0];
-  lipo_compartment_corners = [
-     _lipo_base+[0,0,lipo_compartment_wdh[0]],
-     _lipo_base,
-     _lipo_base+[lipo_compartment_wdh[1],0,0],
-     _lipo_base+[lipo_compartment_wdh[1],0,lipo_compartment_wdh[0]],
-     /* _lipo_base, */
-     /* _lipo_base+[0,0,-lipo_compartment_wdh[0]], */
-     /* _lipo_base+[lipo_compartment_wdh[1],0,-lipo_compartment_wdh[0]], */
-     /* _lipo_base+[lipo_compartment_wdh[1],0,0], */
+  lipo_compartment_corners = [_lipo_base, _lipo_base, _lipo_base, _lipo_base] + [
+    rotation_for_euler_rotations(lipo_rotation) * [0,0,lipo_compartment_wdh[0]],
+    rotation_for_euler_rotations(lipo_rotation) * [0,0,0],
+    rotation_for_euler_rotations(lipo_rotation) * [lipo_compartment_wdh[1],0,0],
+    rotation_for_euler_rotations(lipo_rotation) * [lipo_compartment_wdh[1],0,lipo_compartment_wdh[0]],
   ];
 
   // If we have a GND connector:
@@ -1551,21 +1551,26 @@ module body()
 
       // Cavity for lipo_compartment_wdh:
       translate(lipo_compartment_corners[1])
+        rotate(lipo_rotation)
         cube([
           lipo_compartment_wdh[1],
           lipo_compartment_wdh[2],
           2*lipo_compartment_wdh[0]]);
 
       // Place LiPo cable exit slit
-      translate(
-        lipo_compartment_corners[2]+[
-          -5,
-          lipo_compartment_wdh[2]-0.01,
-          0])
-        cube([
-          5,
-          lipo_compartment_wdh[2]+frame_radius,
-          lipo_compartment_wdh[0]-5]);
+      translate(lipo_compartment_corners[1])
+        rotate(lipo_rotation)
+        {
+        translate(
+          [
+            0,
+            lipo_compartment_wdh[2]-0.01,
+            0])
+          cube([
+            5,
+            lipo_compartment_wdh[2]+frame_radius,
+            lipo_compartment_wdh[0]-5]);
+      }
 
       for (point=[
         wrist_handle_connection_point_thumb_upper,
