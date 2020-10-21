@@ -72,40 +72,22 @@ thumb_joint0_rotation  = [-110, -90];
 
 // LiPo battery measurements:
 
-lipo_compartment_wdh = [26,44,11];
+lipo_compartment_wdh = [31,43,5];
+
+// the girth of the riggers that make up the most of the finger mounts
+frame_radius = 5;
+
 
 
 // MCU related measurements:
 
 // (Clearance in the height dimension has to be fairly generous if you're using
 // Dupont cables.)
-mcu_clearance_wdh = [51.5,23.5,30];
+mcu_in_use = "TTGO T-Display";
 mcu_wall_w = 1.5;
+// Use to press MCU deeper (negative values) into its cutout:
+mcu_vertical_indentation = -2;
 
-// the module used to subtract clearance for your particular mcu:
-module mcu_clearance_box()
-{
-  // This is for an Adafruit Feather 32u4 BLE
-  //
-  // https://learn.adafruit.com/adafruit-feather-32u4-bluefruit-le/overview
-  usb_clear_wh = [10.5,10];
-  usb_vertical_offset = -1.5;
-  cube(mcu_clearance_wdh);
-
-  // USB charging cable entry:
-  translate([
-    mcu_clearance_wdh[0]-0.01,
-    mcu_clearance_wdh[1]/2-usb_clear_wh[0]/2,
-    usb_vertical_offset])
-    cube([frame_radius+0.02,usb_clear_wh[0],usb_clear_wh[1]+0.01]);
-
-  // Battery connector (in reality from 8 to 14 mm from the end of board):
-  translate([
-    mcu_clearance_wdh[0]-5-10,
-    -frame_radius,
-    1])
-    cube([10,2*frame_radius,5+0.01]);
-}
 
 // Elastic band width:
 
@@ -157,9 +139,6 @@ connector_depth = 2;
 
 // how far down (perspective of joint1 on the thumb) the connection point is placed:
 thumb_connection_point_translation_distance = 2*thumb_radius;
-
-// the girth of the riggers that make up the most of the finger mounts
-frame_radius = 5;
 
 // Derive coordinates and rotation vectors:
 
@@ -378,7 +357,78 @@ wrist_handle_connection_point_pinky_lower =
 
 // }}}
 
+// Assign other variables {{{
+mcu_clearance_wdh =
+  ("TTGO T-Display" == mcu_in_use)    ? [61.2,  25.2,30] :
+  ("Adafruit 32u4 BLE" == mcu_in_use) ? [51.5,23.5,30] :
+  // If mcu_in_use is not a valid choice:
+  [undef, undef, undef];
+
+// }}}
+
 // Helper modules:
+
+module mcu_clearance_box()
+{ // {{{
+  if ("TTGO T-Display" == mcu_in_use) {
+    mcu_clearance_box_ttgo_t_display_esp32();
+  } else if ("Adafruit 32u4 BLE" == mcu_in_use) {
+    mcu_clearance_box_adafruit_32u4_ble();
+  } else {
+    assert(false);
+  }
+} // }}}
+
+module mcu_clearance_box_ttgo_t_display_esp32()
+{ // {{{
+  // This is for a TTGO T-Display
+  //
+  // https://github.com/Xinyuan-LilyGO/TTGO-T-Display
+
+  usb_clear_wh = [11,7];
+  usb_vertical_offset = 0;
+  cube(mcu_clearance_wdh);
+
+  // Cutout for viewing display:
+  // actual offset until display, from edge x=6 y=4
+  translate([5,3,0.01])
+    mirror([0,0,1])
+      cube([34+2*1,18+2*1,15]);
+
+  // TODO: cutout for user programmable buttons
+
+  // USB charging cable entry:
+  translate([
+    mcu_clearance_wdh[0]-0.01,
+    mcu_clearance_wdh[1]/2-usb_clear_wh[0]/2,
+    usb_vertical_offset])
+    cube([frame_radius+0.02,usb_clear_wh[0],usb_clear_wh[1]+0.01]);
+
+} // }}}
+
+module mcu_clearance_box_adafruit_32u4_ble()
+{ // {{{
+  // This is for an Adafruit Feather 32u4 BLE
+  //
+  // https://learn.adafruit.com/adafruit-feather-32u4-bluefruit-le/overview
+  usb_clear_wh = [10.5,10];
+  usb_vertical_offset = -1.5;
+  cube(mcu_clearance_wdh);
+
+  // USB charging cable entry:
+  translate([
+    mcu_clearance_wdh[0]-0.01,
+    mcu_clearance_wdh[1]/2-usb_clear_wh[0]/2,
+    usb_vertical_offset])
+    cube([frame_radius+0.02,usb_clear_wh[0],usb_clear_wh[1]+0.01]);
+
+  // Battery connector (in reality from 8 to 14 mm from the end of board):
+  translate([
+    mcu_clearance_wdh[0]-5-10,
+    -frame_radius,
+    1])
+    cube([10,2*frame_radius,5+0.01]);
+} // }}}
 
 module cylinder_from_to (origin,dest,radius1,radius2)
 { // {{{
@@ -1229,15 +1279,20 @@ module body()
 
   // A fairly arbitrary point in the middle of the body shape:
   _base_mcu_corner = [
-    0.4*index_joint0_offset[0]+0.6*ring_joint0_offset[0],
-    0.5*thumb_coords[1][1]+0.5*wristaxis_thumbside_upper_offset[1],
-    -70];
+    0.9*index_joint0_offset[0]+0.1*ring_joint0_offset[0],
+    0.4*thumb_coords[1][1]+0.6*wristaxis_thumbside_upper_offset[1],
+    -50];
 
-  body_mcu_box_corners = [
-    _base_mcu_corner + [0.5*mcu_clearance_wdh[0], 0.5*mcu_clearance_wdh[1],0],
-    _base_mcu_corner + [0.5*mcu_clearance_wdh[0], -0.5*mcu_clearance_wdh[1],0],
-    _base_mcu_corner + [-0.5*mcu_clearance_wdh[0],-0.5*mcu_clearance_wdh[1],0],
-    _base_mcu_corner + [-0.5*mcu_clearance_wdh[0],0.5*mcu_clearance_wdh[1],0],
+  mcu_rotation = [
+    -40,
+    10,
+    0];
+
+  body_mcu_box_corners = [_base_mcu_corner, _base_mcu_corner, _base_mcu_corner, _base_mcu_corner] + [
+    rotation_for_euler_rotations(mcu_rotation) * [mcu_clearance_wdh[0], mcu_clearance_wdh[1],0],
+    rotation_for_euler_rotations(mcu_rotation) * [mcu_clearance_wdh[0], 0,0],
+    rotation_for_euler_rotations(mcu_rotation) * [0,0,0],
+    rotation_for_euler_rotations(mcu_rotation) * [0,mcu_clearance_wdh[1],0],
   ];
 
 
@@ -1508,7 +1563,7 @@ module body()
           0])
         cube([
           5,
-          lipo_compartment_wdh[2],
+          lipo_compartment_wdh[2]+frame_radius,
           lipo_compartment_wdh[0]-5]);
 
       for (point=[
@@ -1521,6 +1576,8 @@ module body()
           connector_negative(extra_cutout=false);
 
       translate(body_mcu_box_corners[2])
+        rotate(mcu_rotation)
+        translate([0,0,mcu_vertical_indentation])
         mcu_clearance_box();
 
     }
