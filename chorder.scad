@@ -72,7 +72,7 @@ thumb_joint0_rotation  = [-110, -90];
 
 // LiPo battery measurements:
 
-lipo_compartment_wdh = [31,43,5];
+lipo_compartment_wdh = [31,43,5.4];
 
 // the girth of the riggers that make up the most of the finger mounts
 frame_radius = 5;
@@ -359,7 +359,7 @@ wrist_handle_connection_point_pinky_lower =
 
 // Assign other variables {{{
 mcu_clearance_wdh =
-  ("TTGO T-Display" == mcu_in_use)    ? [61.2,  25.2,30] :
+  ("TTGO T-Display" == mcu_in_use)    ? [52, 25.5,30] :
   ("Adafruit 32u4 BLE" == mcu_in_use) ? [51.5,23.5,30] :
   // If mcu_in_use is not a valid choice:
   [undef, undef, undef];
@@ -385,24 +385,39 @@ module mcu_clearance_box_ttgo_t_display_esp32()
   //
   // https://github.com/Xinyuan-LilyGO/TTGO-T-Display
 
-  usb_clear_wh = [11,7];
-  usb_vertical_offset = 0;
+  usb_clear_wh = [11,10];
+  usb_offset = [6,-3];
+  reset_button_interval=[36,43];
+  compass(100);
+  window_cutout_wd = [34+2*0.5,18+2*0.5];
+
   cube(mcu_clearance_wdh);
 
-  // Cutout for viewing display:
+  // Window for viewing display:
   // actual offset until display, from edge x=6 y=4
   translate([5,3,0.01])
     mirror([0,0,1])
       cube([34+2*1,18+2*1,15]);
 
+  translate([reset_button_interval[0],-2,-1])
+    cube([reset_button_interval[1]-reset_button_interval[0],3,2*frame_radius]);
+
+  for (yoff = [2, mcu_clearance_wdh[1]-2])
+    translate([0,yoff,1])
+      rotate([0,90,0])
+        cylinder(r=2,h=mcu_clearance_wdh[0],$fn=20);
+
   // TODO: cutout for user programmable buttons
+  for (yoff = [4.5, mcu_clearance_wdh[1]-4.5])
+    translate([49,yoff,-frame_radius])
+      cylinder(r=2.5,h=frame_radius+0.01,$fn=20);
 
   // USB charging cable entry:
   translate([
-    mcu_clearance_wdh[0]-0.01,
+    mcu_clearance_wdh[0]-0.01-usb_offset[0],
     mcu_clearance_wdh[1]/2-usb_clear_wh[0]/2,
-    usb_vertical_offset])
-    cube([frame_radius+0.02,usb_clear_wh[0],usb_clear_wh[1]+0.01]);
+    usb_offset[1]])
+    cube([frame_radius+usb_offset[0]+0.02,usb_clear_wh[0],usb_clear_wh[1]+0.01]);
 
 } // }}}
 
