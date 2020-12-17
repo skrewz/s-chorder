@@ -103,6 +103,7 @@ Plain          | Thumb  | Fingers | Note
 `Esc`          | ◻◻◼    | ◻◻◼◻    | Not a prefix
 `Ctrl`         | ◻◻◼    | ◼◻◼◼    | Prefix
 `Alt`          | ◻◻◼    | ◻◼◼◼    | Prefix
+`Insert`       | ◻◻◼    | ◼◻◻◼    | Not a prefix
 
 
 ## Less frequent special keys
