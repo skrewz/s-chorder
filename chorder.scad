@@ -136,6 +136,11 @@ m3_nut_holder_wall_w = 1;
 
 connector_depth = 2;
 
+aux_connector_dimension = frame_radius;
+aux_connector_growth_factor = 1.3;
+aux_connector_growth_height = 10;
+aux_connector_standoff = 7;
+
 
 // how far down (perspective of joint1 on the thumb) the connection point is placed:
 thumb_connection_point_translation_distance = 2*thumb_radius;
@@ -388,7 +393,6 @@ module mcu_clearance_box_ttgo_t_display_esp32()
   usb_clear_wh = [11,10];
   usb_offset = [6,-3];
   reset_button_interval=[36,43];
-  compass(100);
   window_cutout_wd = [34+2*0.5,18+2*0.5];
 
   cube(mcu_clearance_wdh);
@@ -1356,6 +1360,39 @@ module body()
         translate(offs)
         {
           sphere(r=frame_radius,$fn=20);
+        }
+      }
+
+      translate(body_front_index_offset) {
+        rotate([0,-90,0]) {
+          hull()
+          {
+            // non-expanding part:
+            cylinder(
+              r=aux_connector_dimension,
+              h=aux_connector_standoff, $fn=20);
+            translate([-aux_connector_dimension,0,0])
+              cylinder(
+                r=0.7*aux_connector_dimension,
+                h=aux_connector_standoff,$fn=20);
+          }
+
+          hull()
+          {
+            translate([0,0,aux_connector_standoff])
+            {
+              // the aux_connector itself:
+              cylinder(
+                r1=aux_connector_dimension,
+                r2=aux_connector_growth_factor*aux_connector_dimension,
+                h=aux_connector_growth_height, $fn=20);
+              translate([-aux_connector_dimension,0,0])
+                cylinder(
+                  r1=0.7*aux_connector_dimension,
+                  r2=aux_connector_growth_factor*0.7*aux_connector_dimension,
+                  h=aux_connector_growth_height,$fn=20);
+            }
+          }
         }
       }
 
