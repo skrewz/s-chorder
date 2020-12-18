@@ -521,7 +521,7 @@ rounding_r = 2;
 clasp_length = elastic_band_clearing_w+2*elastic_band_wall_w+2*m3_head_clear_radius+2*m3_clear_radius-2*rounding_r;
 loose_clasp_length = clasp_length + 2*m3_head_clear_radius+2*m3_clear_radius+2*rounding_r+2*elastic_band_wall_w;
 
-module elastic_clip_positive()
+module elastic_clip_positive(print_clip=true)
 { // {{{
 
   rotate([0,90,0])
@@ -578,15 +578,18 @@ module elastic_clip_positive()
     }
   }
 
-  rotate([0,90,0])
-    translate([0,-(loose_clasp_length-clasp_length)/2,-4*frame_radius])
-    {
-      clasp_one_side();
-
-      translate([0,0,-elastic_band_thickness])
-        mirror([0,0,1])
+  if (print_clip)
+  {
+    rotate([0,90,0])
+      translate([0,-(loose_clasp_length-clasp_length)/2,-4*frame_radius])
+      {
         clasp_one_side();
-    }
+
+        translate([0,0,-elastic_band_thickness])
+          mirror([0,0,1])
+          clasp_one_side();
+      }
+  }
 
 } // }}}
 
@@ -1653,6 +1656,9 @@ module wrist_handle()
   wrist_handle_point_rear_thumbside = body_wristaxis_thumbside_upper_offset + [0,-80,0];
   wrist_handle_point_rear_pinkyside = body_wristaxis_pinkyside_upper_offset + [0,-80,0];
 
+  wrist_handle_elastic_park_clip_upper = wrist_handle_wristaxis_front_upper_pinkyside+[0,-2*frame_radius,0];
+  wrist_handle_elastic_park_clip_lower = wrist_handle_wristaxis_front_lower_pinkyside;
+
   wrist_handle_elastic_coords = [
     0.25*body_wristaxis_pinkyside_upper_offset+
     0.75*wrist_handle_point_rear_pinkyside,
@@ -1724,6 +1730,20 @@ module wrist_handle()
         frame_radius,frame_radius,
         $fn=30);
 
+      // to support the front elastic parking clip:
+      cylinder_from_to(
+        wrist_handle_elastic_park_clip_upper,
+        wrist_handle_elastic_park_clip_lower,
+        frame_radius,frame_radius,
+        $fn=30);
+
+      // front elastic park position:
+      translate(wrist_handle_elastic_park_clip_upper)
+        rotate(rotation_of_vector(wrist_handle_elastic_park_clip_upper-wrist_handle_elastic_park_clip_lower))
+          rotate([-90,0,90])
+            mirror([1,0,0])
+              elastic_clip_positive(print_clip=false);
+
     }
     union()
     {
@@ -1760,6 +1780,13 @@ module wrist_handle()
       {
         elastic_clip_negative();
       }
+
+      // front elastic park position:
+      translate(wrist_handle_elastic_park_clip_upper)
+        rotate(rotation_of_vector(wrist_handle_elastic_park_clip_upper-wrist_handle_elastic_park_clip_lower))
+          rotate([-90,0,90])
+            mirror([1,0,0])
+              elastic_clip_negative();
     }
   }
 
