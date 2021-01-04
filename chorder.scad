@@ -766,6 +766,8 @@ module contact_negative_buttonbased ()
       translate([0,yoff+1/2,-4])
         cylinder(r=1.5,h=10+(2+1-contact_clearance),$fn=20);
 
+  // the hole through which the button is mounted (plus a bar to stop button at
+  // correct height):
   difference()
   {
     translate([-(fact*6)/2,-(fact*6)/2,-15-(2+1-contact_clearance)])
@@ -776,6 +778,12 @@ module contact_negative_buttonbased ()
       translate([0,((fact*6)-1)/2,0])
       cube([fact*6,1,3]);
   }
+
+  // the receiving end for the button L shield:
+  translate([(fact*6)/2+2,-(fact*6)/2,-10-(2+1-contact_clearance)-0.01])
+  {
+    cube([1.5,(fact*6),10+(2+1-contact_clearance)+0.02]);
+  }
 } // }}}
 
 module contact_positive_buttonbased ()
@@ -784,7 +792,7 @@ module contact_positive_buttonbased ()
   {
     minkowski()
     {
-      cube([6,6,10+(2+1-contact_clearance)]);
+      cube([6+/*walls:*/1*2+/*L cutout:*/1.5,6,10+(2+1-contact_clearance)]);
       cylinder(r=2,h=0.001,$fn=20);
     }
   }
@@ -1099,10 +1107,10 @@ module finger_end()
             translate([0,0,thumb_radius+contact_clearance])
               cylinder(r=frame_radius,h=thumb_connection_point_translation_distance-thumb_radius-contact_clearance,$fn=30);
           }
-
       translate(thumb_coords[1])
         rotate(thumb_rotation[1])
         translate([0,scale_for_thumb_contact_offset*thumb_segment_lengths[1],-depth])
+        rotate([0,0,90]) // to position front the correct way
         contact_positive();
 
     // Place the far thumb and near thumb buttons where they need to be:
@@ -1110,6 +1118,7 @@ module finger_end()
         rotate(thumb_rotation[1])
         rotate([0,90,0])
         translate([0,0,-thumb_radius-contact_clearance])
+        rotate([0,0,180]) // to position front the correct way
         contact_positive();
 
       translate(thumb_coords[1])
@@ -1135,6 +1144,7 @@ module finger_end()
           // Place the far thumb and near thumb buttons where they need to be:
           rotate([0,90,0])
             translate([0,0,-thumb_radius-contact_clearance])
+            rotate([0,0,180]) // to position front the correct way
             contact_negative();
           rotate([0,-90,0])
             translate([0,0,-thumb_radius-contact_clearance])
