@@ -20,7 +20,7 @@ The model OpenSCAD file [is parametric to a ridiculous degree](https://github.co
 
 If you find yourself trying this out, I'd recommend one of two approaches, or a combination of them:
 
-1. Try measuring your finger segment lengths. They are measured on a bent finger (i.e. one that exposes 90 degree angles on both ends of the segment) and measured like a caliper would; externally. The finger radii should handle the difference. This might provide a starting point, but, ultimately, you'll also be...:
+1. Try measuring your finger segment lengths. They are measured on a bent finger (i.e. one that exposes 90 degree angles on both ends of the segment) and measured like a caliper would; externally. The finger radii should handle the difference from external measurement to where the joint pivots. This might provide a starting point, but, ultimately, you'll also be...:
 2. Find some economic slicing settings for your slicer and acknowledge you will get it wrong. I find that it's worth printing another version even for single millimetres of incorrect location, so it pays to print a whole lot of single-shelled-5%-infill sorts of budget prints.
 
 At any rate, make sure you make a git commit in your fork for every time you print a prototype. This'll help greatly in terms of knowing what you've changed. And please let me know what sort of tweaks you've had to do—maybe it can be better integrated into the model's calculations.
