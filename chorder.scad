@@ -549,21 +549,29 @@ module elastic_clip_positive(print_clip=true)
         }
       translate([0.5*frame_radius,0,0])
       {
-        translate([0,0,-frame_radius])
+        for (offs = [
+            1*m3_head_clear_radius+1,
+            loose_clasp_length/2,
+            loose_clasp_length-(1*m3_head_clear_radius+1)])
+        {
+          translate([0,0,-frame_radius])
           {
-            for (offs = [
-              elastic_band_wall_w+1*m3_head_clear_radius,
-              loose_clasp_length-(elastic_band_wall_w+1*m3_head_clear_radius)])
-            {
-              translate([
+            translate([
                 0,
                 offs,
                 -elastic_band_wall_w-elastic_band_thickness-0.01])
-                {
-                  cylinder(r=m3_clear_radius,h=3*frame_radius,$fn=20);
-                }
+            {
+              cylinder(r=m3_clear_radius,h=3*frame_radius,$fn=20);
             }
           }
+          translate([
+              0,
+              offs,
+              rounding_r-0.5*m3_head_height])
+          {
+            cylinder(r=m3_head_clear_radius,h=3*frame_radius,$fn=20);
+          }
+        }
       }
     }
   }
