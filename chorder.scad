@@ -5,7 +5,7 @@
 //       known point (connection point?)
 
 print_which_part = "composition";
-// Options are: "composition", "finger_end", "body", "wrist_handle" and "test_object"
+// Options are: "composition", "finger_end", "finger_l", "body", "wrist_handle" and "test_object"
 
 /*****************************************************************************/
 /* Likely calibration properties                                             */
@@ -78,6 +78,10 @@ lipo_compartment_wdh = [31,43,5.4];
 frame_radius = 5;
 
 
+button_l_thickness = 0.5;
+button_l_thin_part_thickness = 0.5;
+button_l_offset = 4;
+button_l_cutout_thickness = button_l_thickness + 1;
 
 // MCU related measurements:
 
@@ -780,19 +784,20 @@ module contact_negative_buttonbased ()
   }
 
   // the receiving end for the button L shield:
-  translate([(fact*6)/2+2,-(fact*6)/2,-10-(2+1-contact_clearance)-0.01])
+  translate([(fact*6)/2+button_l_offset,-(fact*6)/2,-10-(2+1-contact_clearance)-0.01])
   {
-    cube([1.5,(fact*6),10+(2+1-contact_clearance)+0.02]);
+    cube([button_l_cutout_thickness,(fact*6),10+(2+1-contact_clearance)+0.02]);
   }
 } // }}}
 
 module contact_positive_buttonbased ()
 { // {{{
+  fact = button_hole_overdimension_factor;
   translate([-6/2,-6/2,-10-(2+1-contact_clearance)])
   {
     minkowski()
     {
-      cube([6+/*walls:*/1*2+/*L cutout:*/1.5,6,10+(2+1-contact_clearance)]);
+      cube([6+/*L cutout:*/button_l_cutout_thickness+button_l_offset,6,10+(2+1-contact_clearance)]);
       cylinder(r=2,h=0.001,$fn=20);
     }
   }
@@ -822,6 +827,12 @@ module contact_positive_buttonbased ()
               cylinder(r=1,h=3,$fn=10);
         }
       }
+
+    // button L shield visualised in location:
+    translate([(fact*6)/2+button_l_offset,-6/2,-10-(2+1-contact_clearance)-0.01])
+    {
+      finger_l();
+    }
 
     translate([0,0,-(2+1-contact_clearance)])
       color("red")
@@ -1285,6 +1296,53 @@ module finger_end()
     }
   }
 
+} // }}}
+
+module finger_l()
+{ // {{{
+
+  difference()
+  {
+    union()
+    {
+      // through-going piece:
+      cube([button_l_thickness,6,10+(2+1-contact_clearance)]);
+
+      // rounded corner:
+      translate ([0,0,10+(2+1-contact_clearance)])
+      {
+        difference()
+        {
+          intersection()
+          {
+            translate ([-contact_clearance+button_l_thickness,0,0])
+              cube([contact_clearance,6,contact_clearance]);
+            translate ([-contact_clearance+button_l_thickness,0,0])
+              rotate([-90,0,0])
+                  cylinder(r=contact_clearance,h=6,$fn=40);
+          }
+          union()
+          {
+              translate ([-contact_clearance+button_l_thickness,0,0])
+                rotate([-90,0,0])
+                  translate([0,0,-0.01])
+                    cylinder(r=contact_clearance-button_l_thin_part_thickness,h=6+0.02,$fn=40);
+          }
+        }
+      }
+      // flat finger interface:
+      translate ([
+        -contact_clearance+button_l_thickness,
+        0,
+        10+(2+1-contact_clearance)+contact_clearance-button_l_thin_part_thickness])
+      {
+        translate ([-6,0,0])
+          cube([6,6,button_l_thin_part_thickness]);
+        translate ([-6,6/2,0])
+          cylinder(r=6/2,h=button_l_thin_part_thickness,$fn=40);
+      }
+    }
+  }
 } // }}}
 
 
@@ -1806,6 +1864,9 @@ if ("finger_end" == print_which_part) {
   // stand at an angle mostly suitable for printing:
   rotate([120,-10,0])
     finger_end();
+} else if ("finger_l" == print_which_part) {
+  rotate([90,0,0])
+    finger_l();
 } else if ("body" == print_which_part) {
   // Meh: offset below the xy plane
   rotate([90,0,0])
@@ -1826,5 +1887,8 @@ if ("finger_end" == print_which_part) {
 
   translate([-60,-100,-40])
     test_object();
+
+  translate([-80,0,0])
+    finger_l();
 }
 // vim: fml=1 fdm=marker
