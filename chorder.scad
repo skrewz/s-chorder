@@ -145,6 +145,35 @@ aux_connector_growth_factor = 1.3;
 aux_connector_growth_height = 10;
 aux_connector_standoff = 7;
 
+// https://www.aliexpress.com/item/32960278288.html
+// measured: microswitch_box_wdh = [5.79,12.86,6.16];
+microswitch_box_wdh = [5.80,12.80,/*choosing measured*/6.16];
+// Visually only:
+microswitch_box_black_until_h = 3.17;
+// Switch expands a bit around the mounting through holes:
+microswitch_box_h_at_throughhole = 6.52;
+microswitch_pin_wdh = [0.5,0.8,3.18];
+microswitch_pin_depths = [
+  (12.80-2*5.15)/2,
+  (12.80-2*5.15)/2+1*5.15,
+  (12.80-2*5.15)/2+2*5.15
+];
+microswitch_lever_d = 1.42;
+// only until the point under the radius; larger for cosmetic purposes
+microswitch_lever_l = 14.50-5.00/2;
+microswitch_lever_width = 3.6;
+// estimate:
+microswitch_lever_rest_angle = 20;
+microswitch_lever_wheel_wr = [3,5.00/2];
+// off the lever clearance:
+microswitch_lever_wheel_raise = 1.00; // measured
+
+microswitch_throughhole_r = 0.9; // crummy measurement; not precise
+microswitch_throughholes_yzs = [
+  [(microswitch_box_wdh[1]-6.50)/2,5.80-5.10],
+  [(microswitch_box_wdh[1]-6.50)/2+6.50,5.80-5.10],
+];
+
 
 // how far down (perspective of joint1 on the thumb) the connection point is placed:
 thumb_connection_point_translation_distance = 2*thumb_radius;
@@ -771,35 +800,6 @@ module contact_positive ()
 
 module microswitch ()
 { // {{{
-  // https://www.aliexpress.com/item/32960278288.html
-  // measured: microswitch_box_wdh = [5.79,12.86,6.16];
-  microswitch_box_wdh = [5.80,12.80,/*choosing measured*/6.16];
-  // Visually only:
-  microswitch_box_black_until_h = 3.17;
-  // Switch expands a bit around the mounting through holes:
-  microswitch_box_h_at_throughhole = 6.52;
-  microswitch_pin_wdh = [0.5,0.8,3.18];
-  microswitch_pin_depths = [
-    (12.80-2*5.15)/2,
-    (12.80-2*5.15)/2+1*5.15,
-    (12.80-2*5.15)/2+2*5.15
-  ];
-  microswitch_lever_d = 1.42;
-  // only until the point under the radius; larger for cosmetic purposes
-  microswitch_lever_l = 14.50-5.00/2;
-  microswitch_lever_width = 3.6;
-  // estimate:
-  microswitch_lever_rest_angle = 20;
-  microswitch_lever_wheel_wr = [3,5.00/2];
-  // off the lever clearance:
-  microswitch_lever_wheel_raise = 1.00; // measured
-
-  microswitch_throughhole_r = 0.9; // crummy measurement; not precise
-  microswitch_throughholes_yzs = [
-    [(microswitch_box_wdh[1]-6.50)/2,5.80-5.10],
-    [(microswitch_box_wdh[1]-6.50)/2+6.50,5.80-5.10],
-  ];
-
   difference()
   {
     union()
