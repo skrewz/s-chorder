@@ -844,7 +844,7 @@ module microswitch ()
               microswitch_lever_wheel_raise+microswitch_lever_wheel_wr[1]
             ]) {
               rotate([0,90,0])
-              cylinder(r=microswitch_lever_wheel_wr[1],h=microswitch_lever_wheel_wr[0],$fn=12);
+                cylinder(r=microswitch_lever_wheel_wr[1],h=microswitch_lever_wheel_wr[0],$fn=12);
             }
         }
       }
@@ -866,7 +866,28 @@ module microswitch ()
 
 module contact_positive_microswitchbased ()
 { // {{{
-  microswitch();
+%
+  translate([
+    -(
+      microswitch_lever_l
+      +sin(microswitch_lever_rest_angle)*microswitch_box_wdh[2]
+      +cos(microswitch_lever_rest_angle)*microswitch_lever_d
+    ),
+    microswitch_box_wdh[0]/2,
+    -(
+      cos(microswitch_lever_rest_angle)*microswitch_box_wdh[2]
+      -sin(microswitch_lever_rest_angle)*microswitch_lever_d
+      +microswitch_lever_wheel_raise
+      + 2*microswitch_lever_wheel_wr[1]
+    )
+    + contact_clearance
+  ]) {
+    rotate([0,0,-90])
+      rotate([-microswitch_lever_rest_angle,0,0])
+      {
+        microswitch();
+      }
+  }
 } // }}}
 module contact_negative_microswitchbased ()
 { // {{{
