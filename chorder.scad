@@ -768,6 +768,111 @@ module contact_positive ()
   contact_positive_buttonbased();
 } // }}}
 
+
+module microswitch ()
+{ // {{{
+  // https://www.aliexpress.com/item/32960278288.html
+  // measured: microswitch_box_wdh = [5.79,12.86,6.16];
+  microswitch_box_wdh = [5.80,12.80,/*choosing measured*/6.16];
+  // Visually only:
+  microswitch_box_black_until_h = 3.17;
+  // Switch expands a bit around the mounting through holes:
+  microswitch_box_h_at_throughhole = 6.52;
+  microswitch_pin_wdh = [0.5,0.8,3.18];
+  microswitch_pin_depths = [
+    (12.80-2*5.15)/2,
+    (12.80-2*5.15)/2+1*5.15,
+    (12.80-2*5.15)/2+2*5.15
+  ];
+  microswitch_lever_d = 1.42;
+  // only until the point under the radius; larger for cosmetic purposes
+  microswitch_lever_l = 14.50-5.00/2;
+  microswitch_lever_width = 3.6;
+  // estimate:
+  microswitch_lever_rest_angle = 20;
+  microswitch_lever_wheel_wr = [3,5.00/2];
+  // off the lever clearance:
+  microswitch_lever_wheel_raise = 1.00; // measured
+
+  microswitch_throughhole_r = 0.9; // crummy measurement; not precise
+  microswitch_throughholes_yzs = [
+    [(microswitch_box_wdh[1]-6.50)/2,5.80-5.10],
+    [(microswitch_box_wdh[1]-6.50)/2+6.50,5.80-5.10],
+  ];
+
+  difference()
+  {
+    union()
+    {
+      // white part of body
+      color("white")
+      {
+        cube([microswitch_box_wdh[0],microswitch_box_wdh[1],microswitch_box_wdh[2]-microswitch_box_black_until_h]);
+        // boxy shape around throughholes:
+        for(yz = microswitch_throughholes_yzs)
+          translate([0,yz[0]-microswitch_throughhole_r,microswitch_box_wdh[2]-microswitch_box_h_at_throughhole])
+            cube([microswitch_box_wdh[0],2*microswitch_throughhole_r,2*microswitch_throughhole_r]);
+      }
+
+      // black part of body
+      color("black")
+        translate([0,0,microswitch_box_wdh[2]-microswitch_box_black_until_h])
+          cube([microswitch_box_wdh[0],microswitch_box_wdh[1],microswitch_box_black_until_h]);
+
+      // pins
+      color("silver")
+        for (d = microswitch_pin_depths)
+          translate([microswitch_box_wdh[0]/2,d,-microswitch_pin_wdh[2]])
+            translate([-microswitch_pin_wdh[0]/2,-microswitch_pin_wdh[1]/2,0])
+              cube(microswitch_pin_wdh);
+
+
+      // lever and wheel:
+      translate([(microswitch_box_wdh[0]-microswitch_lever_width)/2,microswitch_lever_d,microswitch_box_wdh[2]])
+      {
+        rotate([microswitch_lever_rest_angle,0,0])
+        {
+          // the lever itself:
+          color("silver")
+            cube([microswitch_lever_width,microswitch_lever_l+microswitch_lever_wheel_wr[1],0.2]);
+
+          // the wheel on the lever:
+          color("black")
+            translate([
+              (microswitch_lever_width-microswitch_lever_wheel_wr[0])/2,
+              microswitch_lever_l,
+              microswitch_lever_wheel_raise+microswitch_lever_wheel_wr[1]
+            ]) {
+              rotate([0,90,0])
+              cylinder(r=microswitch_lever_wheel_wr[1],h=microswitch_lever_wheel_wr[0],$fn=12);
+            }
+        }
+      }
+    }
+
+    // cut out through-holes:
+    union()
+    {
+      color("white")
+        for(yz = microswitch_throughholes_yzs)
+          translate([-microswitch_box_wdh[0],yz[0],yz[1]])
+            rotate([0,90,0])
+              cylinder(r=microswitch_throughhole_r,h=3*microswitch_box_wdh[0],$fn=12);
+    }
+  }
+
+
+} // }}}
+
+module contact_positive_microswitchbased ()
+{ // {{{
+  microswitch();
+} // }}}
+module contact_negative_microswitchbased ()
+{ // {{{
+} // }}}
+
+
 module contact_negative_buttonbased ()
 { // {{{
   fact = button_hole_overdimension_factor;
