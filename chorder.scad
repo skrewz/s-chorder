@@ -145,6 +145,40 @@ aux_connector_growth_factor = 1.3;
 aux_connector_growth_height = 10;
 aux_connector_standoff = 7;
 
+// https://www.aliexpress.com/item/32960278288.html
+// measured: microswitch_box_wdh = [5.79,12.86,6.16];
+microswitch_box_wdh = [5.80+0.4,12.80+0.3,/*choosing measured*/6.16];
+// Visually only:
+microswitch_box_black_until_h = 3.17;
+// Switch expands a bit around the mounting through holes:
+microswitch_box_h_at_throughhole = 6.52;
+microswitch_pin_wdh = [0.5,0.8,3.18];
+microswitch_pin_depths = [
+  (12.80-2*5.15)/2,
+  (12.80-2*5.15)/2+1*5.15,
+  (12.80-2*5.15)/2+2*5.15
+];
+microswitch_lever_d = 1.42;
+// only until the point under the radius; larger for cosmetic purposes
+microswitch_lever_l = 14.50-5.00/2;
+microswitch_lever_width = 3.6;
+// estimate:
+microswitch_lever_rest_angle = 20;
+microswitch_lever_wheel_wr = [3,5.00/2];
+// off the lever clearance:
+microswitch_lever_wheel_raise = 1.00; // measured
+
+microswitch_throughhole_r = 0.9; // crummy measurement; not precise
+microswitch_throughholes_yzs = [
+  [(microswitch_box_wdh[1]-6.50)/2,5.80-5.10],
+  [(microswitch_box_wdh[1]-6.50)/2+6.50,5.80-5.10],
+];
+
+// the width of the pieces "holding up" the switch in its mount:
+microswitch_support_bridge_width = 2;
+microswitch_case_wall_w = 2;
+
+
 
 // how far down (perspective of joint1 on the thumb) the connection point is placed:
 thumb_connection_point_translation_distance = 2*thumb_radius;
@@ -761,12 +795,219 @@ module compass (length=20)
 
 module contact_negative ()
 { // {{{
-  contact_negative_buttonbased();
+  contact_negative_microswitchbased();
 } // }}}
 module contact_positive ()
 { // {{{
-  contact_positive_buttonbased();
+  contact_positive_microswitchbased();
 } // }}}
+
+
+module microswitch ()
+{ // {{{
+  difference()
+  {
+    union()
+    {
+      // white part of body
+      color("white")
+      {
+        cube([microswitch_box_wdh[0],microswitch_box_wdh[1],microswitch_box_wdh[2]-microswitch_box_black_until_h]);
+        // boxy shape around throughholes:
+        for(yz = microswitch_throughholes_yzs)
+          translate([0,yz[0]-microswitch_throughhole_r,microswitch_box_wdh[2]-microswitch_box_h_at_throughhole])
+            cube([microswitch_box_wdh[0],2*microswitch_throughhole_r,2*microswitch_throughhole_r]);
+      }
+
+      // black part of body
+      color("black")
+        translate([0,0,microswitch_box_wdh[2]-microswitch_box_black_until_h])
+          cube([microswitch_box_wdh[0],microswitch_box_wdh[1],microswitch_box_black_until_h]);
+
+      // pins
+      color("silver")
+        for (d = microswitch_pin_depths)
+          translate([microswitch_box_wdh[0]/2,d,-microswitch_pin_wdh[2]])
+            translate([-microswitch_pin_wdh[0]/2,-microswitch_pin_wdh[1]/2,0])
+              cube(microswitch_pin_wdh);
+
+
+      // lever and wheel:
+      translate([(microswitch_box_wdh[0]-microswitch_lever_width)/2,microswitch_lever_d,microswitch_box_wdh[2]])
+      {
+        rotate([microswitch_lever_rest_angle,0,0])
+        {
+          // the lever itself:
+          color("silver")
+            cube([microswitch_lever_width,microswitch_lever_l+microswitch_lever_wheel_wr[1],0.2]);
+
+          // the wheel on the lever:
+          color("black")
+            translate([
+              (microswitch_lever_width-microswitch_lever_wheel_wr[0])/2,
+              microswitch_lever_l,
+              microswitch_lever_wheel_raise+microswitch_lever_wheel_wr[1]
+            ]) {
+              rotate([0,90,0])
+                cylinder(r=microswitch_lever_wheel_wr[1],h=microswitch_lever_wheel_wr[0],$fn=12);
+            }
+        }
+      }
+    }
+
+    // cut out through-holes:
+    union()
+    {
+      color("white")
+        for(yz = microswitch_throughholes_yzs)
+          translate([-microswitch_box_wdh[0],yz[0],yz[1]])
+            rotate([0,90,0])
+              cylinder(r=microswitch_throughhole_r,h=3*microswitch_box_wdh[0],$fn=12);
+    }
+  }
+
+
+} // }}}
+
+microswitch_translation = [
+    -(
+      microswitch_lever_l
+      +sin(microswitch_lever_rest_angle)*microswitch_box_wdh[2]
+      +cos(microswitch_lever_rest_angle)*microswitch_lever_d
+    ),
+    microswitch_box_wdh[0]/2,
+    -(
+      cos(microswitch_lever_rest_angle)*microswitch_box_wdh[2]
+      -sin(microswitch_lever_rest_angle)*microswitch_lever_d
+      +microswitch_lever_wheel_raise
+      + 2*microswitch_lever_wheel_wr[1]
+    )
+    +  contact_clearance
+];
+
+microswitch_rotation = [-microswitch_lever_rest_angle,0,-90];
+module contact_positive_microswitchbased ()
+{ // {{{
+
+  // visualisation:
+  /* % */
+  /* translate(microswitch_translation) */
+  /* { */
+  /*   rotate(microswitch_rotation) */
+  /*     /1* translate([0,0,contact_clearance]) *1/ */
+  /*       microswitch(); */
+  /* } */
+
+  // positive parts of holder for microswitch:
+  translate(microswitch_translation)
+  {
+    rotate(microswitch_rotation)
+    {
+      difference()
+      {
+        minkowski()
+        {
+          sphere(r=microswitch_case_wall_w,$fn=20);
+          cube(microswitch_box_wdh+[0,microswitch_lever_wheel_wr[1],3]);
+        }
+        // cut off near-finger minkowski box:
+        translate([
+          0,
+          0,
+          cos(microswitch_lever_rest_angle)*(microswitch_lever_wheel_raise+microswitch_lever_wheel_wr[1]+microswitch_box_wdh[2])
+        ]) {
+          rotate([microswitch_lever_rest_angle,0,0])
+            translate([-microswitch_box_wdh[0],-microswitch_box_wdh[1],0])
+            cube([3*microswitch_box_wdh[0],3*microswitch_box_wdh[1],10]);
+        }
+      }
+    }
+  }
+} // }}}
+module contact_negative_microswitchbased ()
+{ // {{{
+  translate(microswitch_translation)
+  {
+    rotate(microswitch_rotation)
+    {
+      // cutout for mounting of box itself:
+      //
+      // (countersunk a bit to handle indentations around throughholes of switch)
+      translate([0,0,-(microswitch_box_h_at_throughhole-microswitch_box_wdh[2])])
+        cube([
+          microswitch_box_wdh[0],
+          microswitch_box_wdh[1],
+          microswitch_box_h_at_throughhole,
+        ]);
+
+      // cutout for free movement of lever arm
+      hull()
+      {
+
+        translate([0,0,microswitch_box_wdh[2]])
+        {
+          cube([
+            microswitch_box_wdh[0],
+            max(microswitch_box_wdh[1],microswitch_lever_d+microswitch_lever_l+microswitch_lever_wheel_wr[1]),
+            microswitch_box_wdh[2]+microswitch_lever_wheel_raise+2*microswitch_lever_wheel_wr[1],
+          ]);
+        }
+        translate([
+          0,
+          microswitch_lever_d+microswitch_lever_l,
+          microswitch_box_wdh[2]
+          +sin(microswitch_lever_rest_angle)*microswitch_lever_l
+          +cos(microswitch_lever_rest_angle)*microswitch_lever_wheel_raise
+          +microswitch_lever_wheel_wr[1]
+          ])
+          rotate([0,90,0])
+            cylinder(r=microswitch_lever_wheel_wr[1],h=microswitch_box_wdh[0],$fn=20);
+      }
+
+      microswitch_with_lever_length = max(microswitch_box_wdh[1],microswitch_lever_d+microswitch_lever_l+microswitch_lever_wheel_wr[1]);
+      // cut out for the easy movement of the finger:
+      // TODO: should probably be a cylinder of sorts:
+      translate([
+        0,
+        0,
+        cos(microswitch_lever_rest_angle)*(microswitch_lever_wheel_raise+microswitch_lever_wheel_wr[1]+microswitch_box_wdh[2])
+      ]) {
+        rotate([0,0,0])
+          translate([-microswitch_box_wdh[0],0,0])
+          cube([
+            3*microswitch_box_wdh[0],
+            2*microswitch_case_wall_w+microswitch_with_lever_length,
+            2*(2*microswitch_lever_wheel_wr[1]+microswitch_lever_wheel_raise)]);
+
+      }
+      // cutout for cable through's
+      // cutting everything out except the bars that the microswitch rests
+      // on, thus, difference():
+      microswitch_support_bridge_width = 2;
+      difference()
+      {
+        translate([0,0,-2*microswitch_box_h_at_throughhole])
+        {
+          cube([
+              microswitch_box_wdh[0],
+              microswitch_box_wdh[1],
+              2*microswitch_box_h_at_throughhole,
+          ]);
+        }
+        translate([0,0,-3-(microswitch_box_h_at_throughhole-microswitch_box_wdh[2])])
+          /* for(yoff=[microswitch_throughholes_yzs[0][0],microswitch_throughholes_yzs[1][0]]) { */
+          for(yoff=[
+            microswitch_pin_depths[1]+(microswitch_pin_depths[2]-microswitch_pin_depths[1])/2,
+            microswitch_pin_depths[0]+(microswitch_pin_depths[1]-microswitch_pin_depths[0])/2,
+          ]) {
+            translate([0,yoff-microswitch_support_bridge_width/2,0])
+              cube([microswitch_box_wdh[0],microswitch_support_bridge_width,3]);
+        }
+      }
+    }
+  }
+} // }}}
+
 
 module contact_negative_buttonbased ()
 { // {{{
@@ -928,38 +1169,18 @@ module test_object ()
     union ()
     {
       cube([10,30,10]);
-      translate([10-5,20-5,10])
-      {
-        contact_positive();
-      }
       translate([10-5,30-5,10])
       {
         rotate([0,0,90])
           contact_positive();
       }
-      translate([0,0,5])
-        rotate([0,-90,0])
-        {
-          rotate([0,0,180])
-          contact_positive();
-        }
     }
 
-    translate([10-5,20-5,10])
-    {
-      contact_negative();
-    }
     translate([10-5,30-5,10])
     {
       rotate([0,0,90])
         contact_negative();
     }
-    translate([0,0,5])
-      rotate([0,-90,0])
-      {
-        rotate([0,0,180])
-        contact_negative();
-      }
   }
 } // }}}
 
@@ -1063,7 +1284,7 @@ module finger_end()
   // over with it. That places it in a weird spot though, so...
   scale_for_thumb_contact_offset = 0.65;
 
-  rotational_offset_thumbside_clasp = 00;
+  rotational_offset_thumbside_clasp =  0;
   rotation_of_thumbside_clasp = [0,0,0];
 
   location_of_thumbside_clasp=
