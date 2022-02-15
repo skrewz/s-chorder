@@ -1284,7 +1284,7 @@ module finger_end()
   // over with it. That places it in a weird spot though, so...
   scale_for_thumb_contact_offset = 0.65;
 
-  rotational_offset_thumbside_clasp = 00;
+  rotational_offset_thumbside_clasp =  0;
   rotation_of_thumbside_clasp = [0,0,0];
 
   location_of_thumbside_clasp=
