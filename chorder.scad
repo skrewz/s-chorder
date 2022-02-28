@@ -1600,11 +1600,11 @@ module body()
   _base_mcu_corner = [
     0.9*index_joint0_offset[0]+0.1*ring_joint0_offset[0],
     0.4*thumb_coords[1][1]+0.6*wristaxis_thumbside_upper_offset[1],
-    -50];
+    -55];
 
   mcu_rotation = [
     -40,
-    10,
+    0,
     0];
 
   body_mcu_box_corners = [_base_mcu_corner, _base_mcu_corner, _base_mcu_corner, _base_mcu_corner] + [
