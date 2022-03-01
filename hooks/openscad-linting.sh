@@ -10,7 +10,7 @@ if egrep -q '\s+$' *.scad; then
   exit 1
 fi
 
-if ! egrep -q 'print_which_part\s*=\s*"composition"' *.scad; then
-  echo 'ERROR: print_which_part should be saved as "composition"'
+if ! egrep -q 'partname\s*=\s*"composition"' *.scad; then
+  echo 'ERROR: partname should be saved as "composition"'
   exit 1
 fi

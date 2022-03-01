@@ -4,8 +4,11 @@
 // TODO: model should echo() absolute positions of buttons, relative to some
 //       known point (connection point?)
 
-print_which_part = "composition";
-// Options are: "composition", "finger_end", "finger_l", "body", "wrist_handle" and "test_object"
+partname = "composition";
+// The Makefile scrapes the below, but you can specify partname to be any of
+// the below values:
+//
+// _partname_values composition finger_end finger_l body wrist_handle test_object
 
 /*****************************************************************************/
 /* Likely calibration properties                                             */
@@ -2089,25 +2092,25 @@ module wrist_handle()
 
 } // }}}
 
-if ("finger_end" == print_which_part) {
+if ("finger_end" == partname) {
   // stand at an angle mostly suitable for printing:
   rotate([120,-10,0])
     finger_end();
-} else if ("finger_l" == print_which_part) {
+} else if ("finger_l" == partname) {
   rotate([90,0,0])
     finger_l();
-} else if ("body" == print_which_part) {
+} else if ("body" == partname) {
   // Meh: offset below the xy plane
   rotate([90,0,0])
     body();
-} else if ("wrist_handle" == print_which_part) {
+} else if ("wrist_handle" == partname) {
   // Meh: offset above the xy plane
   rotate([-90,0,0])
     wrist_handle();
-} else if ("test_object" == print_which_part) {
+} else if ("test_object" == partname) {
   rotate([180,0,0])
     test_object();
-} else if ("composition" == print_which_part) {
+} else if ("composition" == partname) {
   finger_end();
   body();
   wrist_handle();
