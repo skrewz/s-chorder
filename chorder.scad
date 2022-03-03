@@ -1917,20 +1917,6 @@ module body()
           lipo_compartment_wdh[2],
           2*lipo_compartment_wdh[0]]);
 
-      // Place LiPo cable exit slit
-      translate(lipo_compartment_corners[1])
-        rotate(lipo_rotation)
-        {
-        translate(
-          [
-            0,
-            lipo_compartment_wdh[2]-0.01,
-            0])
-          cube([
-            5,
-            lipo_compartment_wdh[2]+frame_radius,
-            lipo_compartment_wdh[0]-5]);
-      }
 
       for (point=[
         wrist_handle_connection_point_thumb_upper,
