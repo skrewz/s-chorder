@@ -560,7 +560,7 @@ module elastic_clasp_negative()
 
 rounding_r = 2;
 clasp_length = elastic_band_clearing_w+2*elastic_band_wall_w+2*m3_head_clear_radius+2*m3_clear_radius-2*rounding_r;
-loose_clasp_length = clasp_length + 2*m3_head_clear_radius+2*m3_clear_radius+2*rounding_r+2*elastic_band_wall_w;
+loose_clasp_length = clasp_length;
 
 module elastic_clip_positive(print_clip=true)
 { // {{{
@@ -591,9 +591,14 @@ module elastic_clip_positive(print_clip=true)
       translate([0.5*frame_radius,0,0])
       {
         for (offs = [
-            1*m3_head_clear_radius+1,
-            loose_clasp_length/2,
-            loose_clasp_length-(1*m3_head_clear_radius+1)])
+            /* 1*m3_head_clear_radius+1, */
+            /* loose_clasp_length/2, */
+            /* loose_clasp_length-(1*m3_head_clear_radius+1) */
+            /* 1*m3_head_clear_radius+1, */
+            loose_clasp_length/2-1*(1*m3_head_clear_radius+1),
+            loose_clasp_length/2+1*(1*m3_head_clear_radius+1),
+            /* loose_clasp_length-(1*m3_head_clear_radius+1) */
+            ])
         {
           translate([0,0,-frame_radius])
           {
