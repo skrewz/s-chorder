@@ -385,6 +385,7 @@ finger_end_connection_point_pinky =
 finger_end_connection_point_radius = frame_radius;
 
 wrist_handle_connection_frame_height = 30;
+wrist_handle_connection_stand_base_height = 20;
 
 body_wristaxis_thumbside_upper_offset = wristaxis_thumbside_upper_offset+[0,0,-wristaxis_radius-frame_radius];
 body_wristaxis_pinkyside_upper_offset = wristaxis_pinkyside_upper_offset+[0,0,-wristaxis_radius-frame_radius];
@@ -1947,6 +1948,12 @@ module wrist_handle()
   wrist_handle_point_rear_thumbside = body_wristaxis_thumbside_upper_offset + [0,-80,0];
   wrist_handle_point_rear_pinkyside = body_wristaxis_pinkyside_upper_offset + [0,-80,0];
 
+  wrist_handle_point_rear_pinkyside_base = wrist_handle_point_rear_pinkyside - [0,0,wrist_handle_connection_stand_base_height];
+  wrist_handle_point_rear_thumbside_base = wrist_handle_point_rear_thumbside - [0,0,wrist_handle_connection_stand_base_height];
+
+  wrist_handle_point_rear_thumbside_magnet = wrist_handle_point_rear_thumbside_base+[frame_radius,frame_radius,-frame_radius];
+  wrist_handle_point_rear_pinkyside_magnet = wrist_handle_point_rear_pinkyside_base+[-frame_radius,frame_radius,-frame_radius];
+
   wrist_handle_elastic_park_clip_upper = wrist_handle_wristaxis_front_upper_pinkyside+[0,-2*frame_radius,0];
   wrist_handle_elastic_park_clip_lower = wrist_handle_wristaxis_front_lower_pinkyside;
 
@@ -1960,7 +1967,9 @@ module wrist_handle()
     {
       for (offs=[
           wrist_handle_point_rear_thumbside,
+          wrist_handle_point_rear_thumbside_base,
           wrist_handle_point_rear_pinkyside,
+          wrist_handle_point_rear_pinkyside_base,
         ])
       {
         translate(offs)
@@ -2005,9 +2014,11 @@ module wrist_handle()
         wrist_handle_point_rear_thumbside,
         frame_radius,frame_radius,
         $fn=30);
+
+      // Beams to base:
       cylinder_from_to(
         wrist_handle_wristaxis_front_lower_thumbside,
-        wrist_handle_point_rear_pinkyside,
+        wrist_handle_point_rear_pinkyside_base,
         frame_radius,frame_radius,
         $fn=30);
       cylinder_from_to(
@@ -2017,9 +2028,31 @@ module wrist_handle()
         $fn=30);
       cylinder_from_to(
         wrist_handle_wristaxis_front_lower_pinkyside,
-        wrist_handle_point_rear_thumbside,
+        wrist_handle_point_rear_thumbside_base,
         frame_radius,frame_radius,
         $fn=30);
+
+      // To form the standing base
+      cylinder_from_to(
+        wrist_handle_point_rear_thumbside_base,
+        wrist_handle_point_rear_pinkyside_base,
+        frame_radius,frame_radius,
+        $fn=30);
+      cylinder_from_to(
+        wrist_handle_point_rear_pinkyside,
+        wrist_handle_point_rear_pinkyside_base,
+        frame_radius,frame_radius,
+        $fn=30);
+      cylinder_from_to(
+        wrist_handle_point_rear_thumbside,
+        wrist_handle_point_rear_thumbside_base,
+        frame_radius,frame_radius,
+        $fn=30);
+
+      // Placing magnet mounts
+      for (pos = [wrist_handle_point_rear_thumbside_magnet,wrist_handle_point_rear_pinkyside_magnet])
+        translate(pos)
+          cylinder(r=5+1, h=5+2);
 
       // to support the front elastic parking clip:
       cylinder_from_to(
@@ -2078,6 +2111,18 @@ module wrist_handle()
           rotate([-90,0,90])
             mirror([1,0,0])
               elastic_clip_negative();
+
+      // Placing magnet mounts
+      for (pos = [wrist_handle_point_rear_thumbside_magnet,wrist_handle_point_rear_pinkyside_magnet])
+        translate(pos+[0,0,1])
+        {
+          hull()
+          {
+            cylinder(r=5, h=5);
+            translate([0,10,0])
+              cylinder(r=5, h=5);
+          }
+        }
     }
   }
 
