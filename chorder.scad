@@ -1305,10 +1305,10 @@ module finger_end()
   _index_arm_starts_at = index_joint0_offset+[0,0,-index_radius-frame_radius];
 
   _clasp_support_outrigger_starts_at =
-    0.6*finger_end_connection_point_thumb+
-    0.4*(index_joint0_offset+[0,0,-index_radius-frame_radius])+
+    0.5*finger_end_connection_point_thumb+
+    0.5*(index_joint0_offset+[0,0,-index_radius-frame_radius])+
     +[0,frame_radius,0];
-  _clasp_support_outrigger_ends_at = 0.5*_index_arm_ends_at+0.5*_index_arm_starts_at;
+  _clasp_support_outrigger_ends_at = 0.7*_index_arm_ends_at+0.3*_index_arm_starts_at;
 
   module thumb_contact_positive ()
   { // {{{
@@ -1528,7 +1528,7 @@ module finger_end()
       translate(_clasp_support_outrigger_starts_at)
         rotate(rotation_of_vector(_clasp_support_outrigger_ends_at-_clasp_support_outrigger_starts_at))
         rotate([90,0,0])
-        translate([-frame_radius,0,-frame_radius])
+        translate([-frame_radius,frame_radius,-frame_radius])
         rotate([0,rotational_offset_thumbside_clasp,0])
         elastic_clasp_negative();
     }
