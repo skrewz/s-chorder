@@ -1761,6 +1761,13 @@ module body()
         frame_radius,frame_radius,
         $fn=30);
 
+      // this one relieves tension from the above
+      cylinder_from_to(
+        body_front_pinky_offset,
+        lipo_compartment_corners[3],
+        frame_radius,frame_radius,
+        $fn=30);
+
       if (include_gnd_connector)
         translate(gnd_connector_coords)
           contact_positive_springbased();
