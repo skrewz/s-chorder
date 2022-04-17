@@ -150,7 +150,7 @@ aux_connector_standoff = 7;
 
 // https://www.aliexpress.com/item/32960278288.html
 // measured: microswitch_box_wdh = [5.79,12.86,6.16];
-microswitch_box_wdh = [5.80+0.4,12.80+0.3,/*choosing measured*/6.16];
+microswitch_box_wdh = [5.80+0.4,12.80+0.4,/*choosing measured*/6.16];
 // Visually only:
 microswitch_box_black_until_h = 3.17;
 // Switch expands a bit around the mounting through holes:
