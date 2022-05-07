@@ -1961,6 +1961,12 @@ module wrist_handle()
   wrist_handle_point_rear_thumbside_magnet = wrist_handle_point_rear_thumbside_base+[frame_radius,frame_radius,-frame_radius];
   wrist_handle_point_rear_pinkyside_magnet = wrist_handle_point_rear_pinkyside_base+[-frame_radius,frame_radius,-frame_radius];
 
+  // Magnets between the outer points:
+  wrist_handle_point_rear_thumb_mid_magnet = wrist_handle_point_rear_thumbside_magnet +
+    1/3*(wrist_handle_point_rear_pinkyside_magnet-wrist_handle_point_rear_thumbside_magnet);
+  wrist_handle_point_rear_pinky_mid_magnet = wrist_handle_point_rear_thumbside_magnet +
+    2/3*(wrist_handle_point_rear_pinkyside_magnet-wrist_handle_point_rear_thumbside_magnet);
+
   wrist_handle_elastic_park_clip_upper = wrist_handle_wristaxis_front_upper_pinkyside+[0,-2*frame_radius,0];
   wrist_handle_elastic_park_clip_lower = wrist_handle_wristaxis_front_lower_pinkyside;
 
@@ -2064,7 +2070,12 @@ module wrist_handle()
         $fn=30);
 
       // Placing magnet mounts
-      for (pos = [wrist_handle_point_rear_thumbside_magnet,wrist_handle_point_rear_pinkyside_magnet])
+      for (pos = [
+        wrist_handle_point_rear_thumbside_magnet,
+        wrist_handle_point_rear_thumb_mid_magnet,
+        wrist_handle_point_rear_pinky_mid_magnet,
+        wrist_handle_point_rear_pinkyside_magnet,
+        ])
         translate(pos)
           cylinder(r=5+1, h=5+2);
 
@@ -2137,7 +2148,20 @@ module wrist_handle()
         ]);
 
       // Placing magnet mounts
-      for (pos = [wrist_handle_point_rear_thumbside_magnet,wrist_handle_point_rear_pinkyside_magnet])
+      for (pos = [
+        wrist_handle_point_rear_thumbside_magnet,
+        wrist_handle_point_rear_thumb_mid_magnet,
+        wrist_handle_point_rear_pinky_mid_magnet,
+        wrist_handle_point_rear_pinkyside_magnet,
+      ])
+      {
+        translate(pos+[0,0,0.4])
+        {
+          mirror([0,0,1])
+          cylinder(r=8.5/2, h=10,$fn=20);
+        }
+
+        // cutout for magnet to slide into:
         translate(pos+[0,0,1])
         {
           hull()
@@ -2147,6 +2171,7 @@ module wrist_handle()
               cylinder(r=5, h=5);
           }
         }
+      }
     }
   }
 
