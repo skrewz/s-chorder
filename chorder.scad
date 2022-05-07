@@ -1496,9 +1496,11 @@ module finger_end()
       translate(_clasp_support_outrigger_starts_at)
         rotate(rotation_of_vector(_clasp_support_outrigger_ends_at-_clasp_support_outrigger_starts_at))
         rotate([90,0,0])
-        translate([-frame_radius,0,-frame_radius])
         rotate([0,rotational_offset_thumbside_clasp,0])
-        elastic_clasp_positive();
+        translate([-frame_radius,frame_radius,-frame_radius])
+        {
+          elastic_clasp_positive();
+        }
 
       contact_outrigger(pinky_joint0_offset,pinky_radius,pinky_coords,pinky_rotation);
       contact_outrigger(ring_joint0_offset,ring_radius,ring_coords,ring_rotation);
