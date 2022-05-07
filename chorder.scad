@@ -2126,6 +2126,16 @@ module wrist_handle()
             mirror([1,0,0])
               elastic_clip_negative();
 
+      // Cutting most of the base to make it stand flat:
+      translate([0,-frame_radius/5,0])
+      translate(wrist_handle_point_rear_thumbside_base-[frame_radius,0,frame_radius])
+        mirror([0,1,0])
+        cube([
+        2*frame_radius+(wrist_handle_point_rear_pinkyside_base[0]-wrist_handle_point_rear_thumbside_base[0]),
+        frame_radius,
+        2*frame_radius+wrist_handle_connection_stand_base_height,
+        ]);
+
       // Placing magnet mounts
       for (pos = [wrist_handle_point_rear_thumbside_magnet,wrist_handle_point_rear_pinkyside_magnet])
         translate(pos+[0,0,1])
