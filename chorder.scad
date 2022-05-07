@@ -2021,6 +2021,13 @@ module wrist_handle()
         wrist_handle_point_rear_thumbside,
         frame_radius,frame_radius,
         $fn=30);
+      // Further support for otherwise-unsupported leg (which doesn't have
+      // enough strength on its own):
+      cylinder_from_to(
+        wrist_handle_wristaxis_front_upper_thumbside-[0,frame_radius,0],
+        wrist_handle_wristaxis_front_lower_thumbside-[0,frame_radius,0],
+        frame_radius,frame_radius,
+        $fn=30);
 
       // Beams to base:
       cylinder_from_to(
