@@ -978,7 +978,7 @@ module contact_negative_microswitchbased ()
       // TODO: should probably be a cylinder of sorts:
       translate([
         0,
-        0,
+        microswitch_case_wall_w,
         cos(microswitch_lever_rest_angle)*(microswitch_lever_wheel_raise+microswitch_lever_wheel_wr[1]+microswitch_box_wdh[2])
       ]) {
         rotate([0,0,0])
