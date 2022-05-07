@@ -1850,23 +1850,20 @@ module body()
         lipo_compartment_corners[3],
         frame_radius,frame_radius,
         $fn=30);
-      hull()
+      for (i=[0:3])
       {
-        for (i=[0:3])
-        {
-          translate(lipo_compartment_corners[i]+[0,lipo_compartment_wdh[2],0])
-            sphere(r=frame_radius,$fn=30);
-          cylinder_from_to(
-            lipo_compartment_corners[i]+[0,lipo_compartment_wdh[2],0],
-            lipo_compartment_corners[(i+1)%4]+[0,lipo_compartment_wdh[2],0],
-            frame_radius,frame_radius,
-            $fn=30);
-          cylinder_from_to(
-            lipo_compartment_corners[i],
-            lipo_compartment_corners[(i+1)%4],
-            frame_radius,frame_radius,
-            $fn=30);
-        }
+        translate(lipo_compartment_corners[i]+[0,lipo_compartment_wdh[2],0])
+          sphere(r=frame_radius,$fn=30);
+        cylinder_from_to(
+          lipo_compartment_corners[i]+[0,lipo_compartment_wdh[2],0],
+          lipo_compartment_corners[(i+1)%4]+[0,lipo_compartment_wdh[2],0],
+          frame_radius,frame_radius,
+          $fn=30);
+        cylinder_from_to(
+          lipo_compartment_corners[i],
+          lipo_compartment_corners[(i+1)%4],
+          frame_radius,frame_radius,
+          $fn=30);
       }
 
       // This will have an elastic clip attached to it:
