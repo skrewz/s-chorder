@@ -75,7 +75,7 @@ thumb_joint0_rotation  = [-110, -90];
 
 // LiPo battery measurements:
 
-lipo_compartment_wdh = [31,43,5.4];
+lipo_compartment_wdh = [34+1,53+3.5,4.9+1];
 
 // the girth of the riggers that make up the most of the finger mounts
 frame_radius = 5;
@@ -406,7 +406,7 @@ wrist_handle_connection_point_pinky_lower =
 
 // Assign other variables {{{
 mcu_clearance_wdh =
-  ("TTGO T-Display" == mcu_in_use)    ? [52, 25.5,30] :
+  ("TTGO T-Display" == mcu_in_use)    ? [52.5, 25.5,30] :
   ("Adafruit 32u4 BLE" == mcu_in_use) ? [51.5,23.5,30] :
   // If mcu_in_use is not a valid choice:
   [undef, undef, undef];
@@ -432,7 +432,7 @@ module mcu_clearance_box_ttgo_t_display_esp32()
   //
   // https://github.com/Xinyuan-LilyGO/TTGO-T-Display
 
-  usb_clear_wh = [11,10];
+  usb_clear_wh = [13,10];
   usb_offset = [6,-3];
   reset_button_interval=[36,43];
   window_cutout_wd = [34+2*0.5,18+2*0.5];
@@ -1626,7 +1626,7 @@ module body()
   ];
 
   lipo_rotation = [
-    -40,
+    -50,
     0,
     0];
 
